@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inspection Entry - MCC Railway Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="assets/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar bg-dark">
+            <div class="sidebar-header">
+                <h4 class="text-white mb-0">MCC System</h4>
+                <small class="text-muted">Railway Dashboard</small>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="create_user.html">
+                        <i class="bi bi-person-plus"></i> Create User
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="zones.html">
+                        <i class="bi bi-map"></i> Zones
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="stations.html">
+                        <i class="bi bi-building"></i> Stations
+                    </a>
+                </li>
+                                <li class="nav-item">
+                    <a class="nav-link" href="organisation.html">
+                        <i class="bi bi-diagram-3"></i> Create Organisation
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="contracts.html">
+                        <i class="bi bi-file-earmark-text"></i> Contracts
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="inspection_form.html">
+                        <i class="bi bi-clipboard-check"></i> Inspection Entry
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="report.html">
+                        <i class="bi bi-graph-up"></i> Reports
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="#" class="btn btn-sm btn-outline-danger w-100">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content flex-grow-1">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+                <div class="container-fluid">
+                    <span class="navbar-brand fw-bold">
+                        <i class="bi bi-train-freight"></i> Railway Mechanized Cleaning Coach Management System
+                    </span>
+                    <div class="ms-auto d-flex align-items-center gap-3">
+                        <span class="text-muted small">Welcome, Admin User</span>
+                        <img src="https://via.placeholder.com/40" alt="Avatar" class="rounded-circle">
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Page Content -->
+            <div class="content-area">
+                <div class="page-header">
+                    <h1><i class="bi bi-clipboard-check"></i> MCC Inspection Entry Form</h1>
+                    <p class="text-muted">Record detailed inspection data for mechanized cleaning coaches</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <form id="inspectionForm" novalidate>
+                            <!-- Section 1: Basic Details -->
+                            <div class="mb-4">
+                                <div class="section-header">
+                                    <h5><i class="bi bi-info-circle"></i> Basic Details</h5>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="inspectionDate" class="form-label">Date of Inspection <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control" id="inspectionDate" name="inspectionDate" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="zoneName" class="form-label">Zone Name <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="zoneName" name="zoneName" required onchange="updateStations()">
+                                                <option value="">-- Select Zone --</option>
+                                                <option value="zone_a">Zone A</option>
+                                                <option value="zone_b">Zone B</option>
+                                                <option value="zone_c">Zone C</option>
+                                                <option value="zone_d">Zone D</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="stationName" class="form-label">Station Name <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="stationName" name="stationName" required>
+                                                <option value="">-- Select Station --</option>
+                                                <option value="station_1">Central Station</option>
+                                                <option value="station_2">Northern Station</option>
+                                                <option value="station_3">Eastern Station</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="depotName" class="form-label">Name of Depot <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="depotName" name="depotName" placeholder="Enter depot name" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="supervisorName" class="form-label">Name of Supervisor <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="supervisorName" name="supervisorName" placeholder="Enter supervisor name" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="auditorName" class="form-label">Name of Auditor (Logged-in User) <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="auditorName" name="auditorName" placeholder="Auto-filled" value="John Doe" required readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Section 2: Train Details -->
+                            <div class="mb-4">
+                                <div class="section-header">
+                                    <h5><i class="bi bi-train-freight"></i> Train Details</h5>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="trainNo" class="form-label">Train No <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="trainNo" name="trainNo" placeholder="e.g., TR-001 or 12345" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Work Timing</label>
+                                            <div class="input-group">
+                                                <label for="timeWorkStarted" class="input-group-text" style="width: 120px;">Time Started <span class="text-danger">*</span></label>
+                                                <input type="time" class="form-control" id="timeWorkStarted" name="timeWorkStarted" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <div class="input-group">
+                                                <label for="timeWorkCompleted" class="input-group-text" style="width: 120px;">Time Completed <span class="text-danger">*</span></label>
+                                                <input type="time" class="form-control" id="timeWorkCompleted" name="timeWorkCompleted" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="totalDuration" class="form-label">Total Duration</label>
+                                            <input type="text" class="form-control" id="totalDuration" name="totalDuration" placeholder="Auto-calculated" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Section 3: Coach Details -->
+                            <div class="mb-4">
+                                <div class="section-header">
+                                    <h5><i class="bi bi-box-seam"></i> Coach Details</h5>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="totalCoaches" class="form-label">No. of Coaches in the Rake <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="totalCoaches" name="totalCoaches" placeholder="Enter total coaches" min="1" required>
+                                            <small class="form-text text-muted">Total number of coaches in the train rake</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="coachesAttended" class="form-label">No. of Coaches Attended <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="coachesAttended" name="coachesAttended" placeholder="Enter attended coaches" min="0" required>
+                                            <small class="form-text text-muted">Number of coaches that were cleaned/inspected</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="coachesNotAttended" class="form-label">No. of Coaches Not Attended</label>
+                                            <input type="number" class="form-control" id="coachesNotAttended" name="coachesNotAttended" placeholder="Auto-calculated" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="completionPercentage" class="form-label">Completion Percentage (%)</label>
+                                            <input type="text" class="form-control" id="completionPercentage" name="completionPercentage" placeholder="Auto-calculated" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Additional Comments -->
+                            <div class="mb-4">
+                                <label for="comments" class="form-label">Additional Comments/Remarks</label>
+                                <textarea class="form-control" id="comments" name="comments" rows="4" placeholder="Enter any additional comments or observations..."></textarea>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="d-grid gap-2 d-sm-flex justify-content-end">
+                                <button type="reset" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Clear Form
+                                </button>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-check-circle"></i> Submit Inspection Entry
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/script.js"></script>
+    <script>
+        function updateStations() {
+            // This would be replaced with backend call to get stations by zone
+            console.log('Updating stations based on selected zone');
+        }
+
+        // Calculate total duration
+        document.getElementById('timeWorkStarted').addEventListener('change', calculateDuration);
+        document.getElementById('timeWorkCompleted').addEventListener('change', calculateDuration);
+
+        function calculateDuration() {
+            const startTime = document.getElementById('timeWorkStarted').value;
+            const endTime = document.getElementById('timeWorkCompleted').value;
+            
+            if (startTime && endTime) {
+                const [startHour, startMin] = startTime.split(':').map(Number);
+                const [endHour, endMin] = endTime.split(':').map(Number);
+                
+                let startTotalMin = startHour * 60 + startMin;
+                let endTotalMin = endHour * 60 + endMin;
+                
+                let duration = endTotalMin - startTotalMin;
+                if (duration < 0) duration += 24 * 60;
+                
+                const hours = Math.floor(duration / 60);
+                const minutes = duration % 60;
+                
+                document.getElementById('totalDuration').value = `${hours}h ${minutes}m`;
+            }
+        }
+
+        // Calculate coaches not attended and completion percentage
+        document.getElementById('totalCoaches').addEventListener('input', calculateCoachStats);
+        document.getElementById('coachesAttended').addEventListener('input', calculateCoachStats);
+
+        function calculateCoachStats() {
+            const total = parseInt(document.getElementById('totalCoaches').value) || 0;
+            const attended = parseInt(document.getElementById('coachesAttended').value) || 0;
+            const notAttended = Math.max(0, total - attended);
+            
+            document.getElementById('coachesNotAttended').value = notAttended;
+            
+            const percentage = total > 0 ? ((attended / total) * 100).toFixed(2) : 0;
+            document.getElementById('completionPercentage').value = percentage + '%';
+        }
+
+        document.getElementById('inspectionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Inspection entry submitted successfully! Backend integration needed.');
+        });
+    </script>
+</body>
+</html>
