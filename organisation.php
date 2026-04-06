@@ -97,10 +97,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_organisation_con
     $amount = $formData['amount'] === '' ? null : (float) $formData['amount'];
     $noOfYears = $formData['noOfYears'] === '' ? null : (int) $formData['noOfYears'];
 
+    $passwordRequired = !$isEditMode;
+
     if (
         $organisationName === '' ||
         $organisationEmail === '' ||
-        $organisationPassword === '' ||
+        ($passwordRequired && $organisationPassword === '') ||
         $orgStartDate === '' ||
         $orgEndDate === '' ||
         $agreementNo === '' ||
@@ -232,7 +234,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_organisation_con
 
             $conn->commit();
 
-            header('Location: ' . ($isEditMode ? 'organisation_list.php?saved=1' : 'organisation_reports.php?org=' . urlencode($organisationName)));
+            $redirectTarget = $isEditMode
+                ? 'organisation_reports.php?org_id=' . urlencode((string) $userId) . '&org=' . urlencode($organisationName) . '&edit_org=1'
+                : 'organisation_reports.php?org=' . urlencode($organisationName);
+            header('Location: ' . $redirectTarget);
             exit;
         } catch (Throwable $e) {
             $conn->rollback();
