@@ -73,11 +73,7 @@ $currentEditId = isset($_GET['edit_id']) ? (int) $_GET['edit_id'] : 0;
 				</div>
 				<?php endif; ?>
 
-				<div class="mb-3">
-					<a href="organisation_reports.php" class="btn btn-primary">
-						<i class="bi bi-journal-plus"></i> Add Report Configuration
-					</a>
-				</div>
+			
 
 				<?php if ($currentEditId > 0): ?>
 				<div class="alert alert-info">
@@ -118,6 +114,9 @@ $currentEditId = isset($_GET['edit_id']) ? (int) $_GET['edit_id'] : 0;
 									<td><?php echo $row['last_report_on'] ? htmlspecialchars((string) $row['last_report_on']) : '-'; ?></td>
 									<td><span class="badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars((string) $row['user_status']); ?></span></td>
 									<td>
+										<a class="btn btn-sm btn-outline-primary me-1" href="organisation_pdf.php?user_id=<?php echo (int) $row['user_id']; ?>" target="_blank">
+											<i class="bi bi-file-earmark-pdf"></i> PDF
+										</a>
 										<a class="btn btn-sm btn-warning" href="organisation.php?edit_id=<?php echo (int) $row['user_id']; ?>">
 											<i class="bi bi-pencil"></i> Edit
 										</a>

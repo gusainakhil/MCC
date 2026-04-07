@@ -5,9 +5,63 @@ $alertMessage = '';
 $alertType = 'success';
 $prefillOrgName = isset($_GET['org']) ? trim($_GET['org']) : '';
 $prefillOrgId = isset($_GET['org_id']) ? (int) $_GET['org_id'] : 0;
+$prefillReportType = isset($_GET['report_type']) ? trim($_GET['report_type']) : '';
+$editingParameterId = isset($_GET['edit_param_id']) ? (int) $_GET['edit_param_id'] : 0;
 $isEditOrgFlow = isset($_GET['edit_org']) && $_GET['edit_org'] === '1';
 $organisationOptions = [];
 $selectedOrganisation = null;
+$formParameterRows = [];
+$validReportTypes = ['Normal Report', 'Intensive Report', 'Attendance Report'];
+$validStatuses = ['Active', 'Inactive'];
+$validCategories = ['Coach Interior', 'Coach Exterior', 'Watering'];
+$reportPageUrls = [
+    'Normal Report' => 'normal_report.php',
+    'Intensive Report' => 'intensive_report.php',
+    'Attendance Report' => 'attendence.php',
+];
+$dbSupportedReportTypes = $validReportTypes;
+$attendanceReportSupported = true;
+$reportDefaults = [];
+$prefillWeightPercent = '';
+$prefillParameterStatus = 'Active';
+
+$reportTypeMetaSql = "
+    SELECT COLUMN_TYPE
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'Mcc_reports'
+      AND COLUMN_NAME = 'report_type'
+    LIMIT 1
+";
+$reportTypeMetaResult = $conn->query($reportTypeMetaSql);
+if ($reportTypeMetaResult) {
+    $reportTypeMetaRow = $reportTypeMetaResult->fetch_assoc();
+    if ($reportTypeMetaRow && isset($reportTypeMetaRow['COLUMN_TYPE'])) {
+        $columnType = (string) $reportTypeMetaRow['COLUMN_TYPE'];
+        $enumValues = [];
+        if (preg_match_all("/'([^']+)'/", $columnType, $matches)) {
+            $enumValues = $matches[1];
+        }
+
+        if (count($enumValues) > 0) {
+            $filteredReportTypes = array_values(array_filter($validReportTypes, function ($type) use ($enumValues) {
+                return in_array($type, $enumValues, true);
+            }));
+            if (count($filteredReportTypes) > 0) {
+                $dbSupportedReportTypes = $filteredReportTypes;
+            }
+        }
+    }
+}
+$attendanceReportSupported = in_array('Attendance Report', $dbSupportedReportTypes, true);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])) {
+    $prefillWeightPercent = isset($_POST['parameterWeight']) ? trim((string) $_POST['parameterWeight']) : '';
+    $postedStatus = isset($_POST['parameterStatus']) ? trim((string) $_POST['parameterStatus']) : '';
+    if (in_array($postedStatus, $validStatuses, true)) {
+        $prefillParameterStatus = $postedStatus;
+    }
+}
 
 $organisationSql = "
     SELECT
@@ -38,21 +92,66 @@ if ($selectedOrganisation === null && $prefillOrgName !== '') {
     }
 }
 
+if ($editingParameterId > 0) {
+    $editParameterSql = '
+        SELECT
+            p.parameter_id,
+            p.parameter_name,
+            p.category,
+            p.user_id,
+            r.report_type
+        FROM Mcc_parameters p
+        INNER JOIN Mcc_reports r ON r.report_id = p.report_id
+        WHERE p.parameter_id = ?
+        LIMIT 1
+    ';
+    $editParameterStmt = $conn->prepare($editParameterSql);
+    if ($editParameterStmt) {
+        $editParameterStmt->bind_param('i', $editingParameterId);
+        $editParameterStmt->execute();
+        $editParameterResult = $editParameterStmt->get_result();
+        $editParameterRow = $editParameterResult ? $editParameterResult->fetch_assoc() : null;
+        $editParameterStmt->close();
+
+        if ($editParameterRow) {
+            if ($prefillOrgId <= 0) {
+                $prefillOrgId = (int) $editParameterRow['user_id'];
+            }
+            if ($prefillReportType === '') {
+                $prefillReportType = (string) $editParameterRow['report_type'];
+            }
+
+            $formParameterRows[] = [
+                'id' => (int) $editParameterRow['parameter_id'],
+                'name' => (string) $editParameterRow['parameter_name'],
+                'category' => (string) $editParameterRow['category'],
+            ];
+        }
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])) {
     $organisationId = isset($_POST['reportOrgId']) ? (int) $_POST['reportOrgId'] : 0;
+    if ($organisationId > 0 && $prefillOrgId <= 0) {
+        $prefillOrgId = $organisationId;
+    }
     $reportType = isset($_POST['reportName']) ? trim($_POST['reportName']) : '';
+    if ($reportType !== '') {
+        $prefillReportType = $reportType;
+    }
+    $pageUrl = isset($reportPageUrls[$reportType]) ? $reportPageUrls[$reportType] : '';
     $weightPercent = isset($_POST['parameterWeight']) && $_POST['parameterWeight'] !== '' ? (float) $_POST['parameterWeight'] : null;
     $status = isset($_POST['parameterStatus']) ? trim($_POST['parameterStatus']) : 'Active';
+    $parameterIds = isset($_POST['parameterId']) && is_array($_POST['parameterId']) ? $_POST['parameterId'] : [];
     $parameterNames = isset($_POST['parameterName']) && is_array($_POST['parameterName']) ? $_POST['parameterName'] : [];
     $categories = isset($_POST['category']) && is_array($_POST['category']) ? $_POST['category'] : [];
 
-    $validReportTypes = ['Normal Report', 'Intensive Report'];
-    $validStatuses = ['Active', 'Inactive'];
-    $validCategories = ['Coach Interior', 'Coach Exterior', 'Watering'];
-
-    if ($organisationId <= 0 || !in_array($reportType, $validReportTypes, true)) {
+    if ($organisationId <= 0 || !in_array($reportType, $dbSupportedReportTypes, true)) {
         $alertMessage = 'Please select an organisation and a valid report name.';
         $alertType = 'danger';
+        if ($reportType === 'Attendance Report' && !$attendanceReportSupported) {
+            $alertMessage = 'Attendance Report is not enabled in database yet. Please ask admin to add it in Mcc_reports.report_type enum.';
+        }
     } elseif ($status === '' || !in_array($status, $validStatuses, true)) {
         $alertMessage = 'Please select a valid status.';
         $alertType = 'danger';
@@ -62,6 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
     } else {
         $normalizedRows = [];
         for ($i = 0; $i < count($parameterNames); $i++) {
+            $pId = isset($parameterIds[$i]) ? (int) $parameterIds[$i] : 0;
             $pName = trim((string) $parameterNames[$i]);
             $cat = isset($categories[$i]) ? trim((string) $categories[$i]) : '';
 
@@ -73,10 +173,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
                 break;
             }
 
-            $normalizedRows[] = ['name' => $pName, 'category' => $cat];
+            $normalizedRows[] = ['id' => $pId, 'name' => $pName, 'category' => $cat];
         }
 
-        if (count($normalizedRows) === 0) {
+        if ($reportType !== 'Attendance Report' && count($normalizedRows) === 0) {
             $alertMessage = 'Please add at least one valid Parameter and Category row.';
             $alertType = 'danger';
         } else {
@@ -155,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
                         if ($existingReportId > 0) {
                             $updateReport = $conn->prepare('
                                 UPDATE Mcc_reports
-                                SET report_name = ?, weight_percent = ?, status = ?
+                                SET report_name = ?, weight_percent = ?, status = ?, page_url = ?
                                 WHERE report_id = ? AND user_id = ?
                             ');
                             if (!$updateReport) {
@@ -163,29 +263,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
                             }
                             if ($weightPercent === null) {
                                 $nullWeight = null;
-                                $updateReport->bind_param('sdsii', $reportName, $nullWeight, $status, $existingReportId, $userId);
+                                $updateReport->bind_param('sdssii', $reportName, $nullWeight, $status, $pageUrl, $existingReportId, $userId);
                             } else {
-                                $updateReport->bind_param('sdsii', $reportName, $weightPercent, $status, $existingReportId, $userId);
+                                $updateReport->bind_param('sdssii', $reportName, $weightPercent, $status, $pageUrl, $existingReportId, $userId);
                             }
                             if (!$updateReport->execute()) {
                                 throw new Exception('Unable to update report details.');
                             }
                             $reportId = $existingReportId;
                             $updateReport->close();
-
-                            $deleteParams = $conn->prepare('DELETE FROM Mcc_parameters WHERE report_id = ? AND user_id = ?');
-                            if (!$deleteParams) {
-                                throw new Exception('Unable to prepare parameter cleanup query.');
-                            }
-                            $deleteParams->bind_param('ii', $reportId, $userId);
-                            if (!$deleteParams->execute()) {
-                                throw new Exception('Unable to clear old parameters.');
-                            }
-                            $deleteParams->close();
                         } else {
                             $insertReport = $conn->prepare('
-                                INSERT INTO Mcc_reports (user_id, report_name, report_type, weight_percent, status)
-                                VALUES (?, ?, ?, ?, ?)
+                                INSERT INTO Mcc_reports (user_id, report_name, report_type, weight_percent, status, page_url)
+                                VALUES (?, ?, ?, ?, ?, ?)
                             ');
                             if (!$insertReport) {
                                 throw new Exception('Unable to prepare report insert query.');
@@ -193,9 +283,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
 
                             if ($weightPercent === null) {
                                 $nullWeight = null;
-                                $insertReport->bind_param('issds', $userId, $reportName, $reportType, $nullWeight, $status);
+                                $insertReport->bind_param('issdss', $userId, $reportName, $reportType, $nullWeight, $status, $pageUrl);
                             } else {
-                                $insertReport->bind_param('issds', $userId, $reportName, $reportType, $weightPercent, $status);
+                                $insertReport->bind_param('issdss', $userId, $reportName, $reportType, $weightPercent, $status, $pageUrl);
                             }
 
                             if (!$insertReport->execute()) {
@@ -215,9 +305,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
                             throw new Exception('Unable to prepare parameter insert query.');
                         }
 
+                        $updateParam = $conn->prepare('
+                            UPDATE Mcc_parameters
+                            SET parameter_name = ?, category = ?, status = ?
+                            WHERE parameter_id = ? AND report_id = ? AND user_id = ?
+                        ');
+                        if (!$updateParam) {
+                            throw new Exception('Unable to prepare parameter update query.');
+                        }
+
+                        $findExistingParam = $conn->prepare('
+                            SELECT parameter_id
+                            FROM Mcc_parameters
+                            WHERE user_id = ? AND report_id = ? AND parameter_name = ? AND category = ?
+                            LIMIT 1
+                        ');
+                        if (!$findExistingParam) {
+                            throw new Exception('Unable to prepare duplicate parameter check query.');
+                        }
+
                         foreach ($normalizedRows as $row) {
+                            $paramId = (int) $row['id'];
                             $paramName = $row['name'];
                             $category = $row['category'];
+
+                            if ($paramId > 0) {
+                                $updateParam->bind_param('sssiii', $paramName, $category, $status, $paramId, $reportId, $userId);
+                                if (!$updateParam->execute()) {
+                                    throw new Exception('Unable to update parameter: ' . $paramName);
+                                }
+                                continue;
+                            }
+
+                            $findExistingParam->bind_param('iiss', $userId, $reportId, $paramName, $category);
+                            $findExistingParam->execute();
+                            $findExistingParam->store_result();
+                            if ($findExistingParam->num_rows > 0) {
+                                continue;
+                            }
+
                             $insertParam->bind_param('iissis', $userId, $reportId, $paramName, $category, $userId, $status);
                             if (!$insertParam->execute()) {
                                 throw new Exception('Unable to save parameter: ' . $paramName);
@@ -225,6 +351,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
                         }
 
                         $insertParam->close();
+                        $updateParam->close();
+                        $findExistingParam->close();
                         $conn->commit();
 
                         header('Location: organisation_list.php?saved=1');
@@ -240,12 +368,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config']) && $alertType === 'danger') {
+    $postedParameterIds = isset($_POST['parameterId']) && is_array($_POST['parameterId']) ? $_POST['parameterId'] : [];
+    $postedParameterNames = isset($_POST['parameterName']) && is_array($_POST['parameterName']) ? $_POST['parameterName'] : [];
+    $postedCategories = isset($_POST['category']) && is_array($_POST['category']) ? $_POST['category'] : [];
+
+    for ($i = 0; $i < count($postedParameterNames); $i++) {
+        $formParameterRows[] = [
+            'id' => isset($postedParameterIds[$i]) ? (int) $postedParameterIds[$i] : 0,
+            'name' => trim((string) $postedParameterNames[$i]),
+            'category' => isset($postedCategories[$i]) ? trim((string) $postedCategories[$i]) : '',
+        ];
+    }
+}
+
 $configuredRows = [];
 $configuredSql = "
     SELECT
         p.user_id,
+        p.parameter_id,
         COALESCE(NULLIF(u.user_name, ''), u.username, u.full_name, CONCAT('User #', u.user_id)) AS organisation_name,
         r.report_name,
+        r.report_type,
         p.parameter_name,
         p.category,
         r.weight_percent,
@@ -253,7 +397,15 @@ $configuredSql = "
     FROM Mcc_parameters p
     INNER JOIN Mcc_reports r ON r.report_id = p.report_id
     INNER JOIN Mcc_users u ON u.user_id = p.user_id
-    ORDER BY p.created_at DESC
+    ORDER BY
+        CASE r.report_type
+            WHEN 'Normal Report' THEN 1
+            WHEN 'Intensive Report' THEN 2
+            WHEN 'Attendance Report' THEN 3
+            ELSE 4
+        END,
+        r.report_name ASC,
+        p.created_at DESC
     LIMIT 100
 ";
 
@@ -268,6 +420,35 @@ if ($prefillOrgId > 0) {
     $configuredRows = array_values(array_filter($configuredRows, function ($row) use ($prefillOrgId) {
         return isset($row['user_id']) && (int) $row['user_id'] === $prefillOrgId;
     }));
+}
+
+$reportDefaultsSql = '
+    SELECT user_id, report_type, weight_percent, status, report_id
+    FROM Mcc_reports
+    ORDER BY report_id DESC
+';
+$reportDefaultsResult = $conn->query($reportDefaultsSql);
+if ($reportDefaultsResult) {
+    while ($defaultRow = $reportDefaultsResult->fetch_assoc()) {
+        $defaultKey = (int) $defaultRow['user_id'] . '__' . (string) $defaultRow['report_type'];
+        if (!isset($reportDefaults[$defaultKey])) {
+            $reportDefaults[$defaultKey] = [
+                'weight_percent' => $defaultRow['weight_percent'] === null ? '' : (string) $defaultRow['weight_percent'],
+                'status' => (string) $defaultRow['status'],
+            ];
+        }
+    }
+}
+
+if (!($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])) && $prefillOrgId > 0 && $prefillReportType !== '') {
+    $prefillKey = $prefillOrgId . '__' . $prefillReportType;
+    if (isset($reportDefaults[$prefillKey])) {
+        $prefillWeightPercent = (string) $reportDefaults[$prefillKey]['weight_percent'];
+        $statusFromDefault = (string) $reportDefaults[$prefillKey]['status'];
+        if (in_array($statusFromDefault, $validStatuses, true)) {
+            $prefillParameterStatus = $statusFromDefault;
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -347,8 +528,11 @@ if ($prefillOrgId > 0) {
                                     <label for="reportName" class="form-label">Report Name <span class="text-danger">*</span></label>
                                     <select class="form-select" id="reportName" name="reportName" required>
                                         <option value="">-- Select Report --</option>
-                                        <option value="Normal Report">Normal Report</option>
-                                        <option value="Intensive Report">Intensive Report</option>
+                                        <option value="Normal Report" <?php echo $prefillReportType === 'Normal Report' ? 'selected' : ''; ?>>Normal Report</option>
+                                        <option value="Intensive Report" <?php echo $prefillReportType === 'Intensive Report' ? 'selected' : ''; ?>>Intensive Report</option>
+                                        <?php if ($attendanceReportSupported): ?>
+                                        <option value="Attendance Report" <?php echo $prefillReportType === 'Attendance Report' ? 'selected' : ''; ?>>Attendance Report</option>
+                                        <?php endif; ?>
                                     </select>
                                 </div>
                             </div>
@@ -358,13 +542,13 @@ if ($prefillOrgId > 0) {
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="parameterWeight" class="form-label">Weight (%)</label>
-                                    <input type="number" class="form-control" id="parameterWeight" name="parameterWeight" min="0" max="100" placeholder="Enter weight">
+                                    <input type="number" class="form-control" id="parameterWeight" name="parameterWeight" min="0" max="100" placeholder="Enter weight" value="<?php echo htmlspecialchars($prefillWeightPercent); ?>">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="parameterStatus" class="form-label">Status</label>
                                     <select class="form-select" id="parameterStatus" name="parameterStatus">
-                                        <option value="Active">Active</option>
-                                        <option value="Inactive">Inactive</option>
+                                        <option value="Active" <?php echo $prefillParameterStatus === 'Active' ? 'selected' : ''; ?>>Active</option>
+                                        <option value="Inactive" <?php echo $prefillParameterStatus === 'Inactive' ? 'selected' : ''; ?>>Inactive</option>
                                     </select>
                                 </div>
                             </div>
@@ -387,7 +571,30 @@ if ($prefillOrgId > 0) {
                                                     <th style="width: 120px;">Action</th>
                                                 </tr>
                                             </thead>
-                                            <tbody id="reportParameterTableBody"></tbody>
+                                            <tbody id="reportParameterTableBody">
+                                                <?php foreach ($formParameterRows as $row): ?>
+                                                <tr>
+                                                    <td class="row-index"></td>
+                                                    <td>
+                                                        <input type="hidden" name="parameterId[]" value="<?php echo (int) $row['id']; ?>">
+                                                        <input type="text" name="parameterName[]" class="form-control form-control-sm parameter-input" placeholder="Enter parameter" required value="<?php echo htmlspecialchars((string) $row['name']); ?>">
+                                                    </td>
+                                                    <td>
+                                                        <select name="category[]" class="form-select form-select-sm category-input" required>
+                                                            <option value="">-- Select Category --</option>
+                                                            <?php foreach ($validCategories as $categoryOption): ?>
+                                                            <option value="<?php echo htmlspecialchars($categoryOption); ?>" <?php echo ((string) $row['category'] === $categoryOption) ? 'selected' : ''; ?>><?php echo htmlspecialchars($categoryOption); ?></option>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger remove-parameter-row">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
                                         </table>
                                     </div>
                                 </div>
@@ -406,6 +613,7 @@ if ($prefillOrgId > 0) {
                     </div>
                 </div>
 
+                <?php if ($prefillOrgId > 0): ?>
                 <div class="card">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">Configured Parameters</h5>
@@ -414,29 +622,25 @@ if ($prefillOrgId > 0) {
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Organisation</th>
                                     <th>Report</th>
                                     <th>Parameter</th>
                                     <th>Category</th>
-                                    <th>Weight</th>
-                                    <th>Status</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (count($configuredRows) === 0): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-3">No configured parameters found.</td>
+                                    <td colspan="4" class="text-center text-muted py-3">No configured parameters found.</td>
                                 </tr>
                                 <?php else: ?>
                                 <?php foreach ($configuredRows as $row): ?>
-                                <?php $rowStatus = strtolower((string) $row['status']) === 'active' ? 'bg-success' : 'bg-secondary'; ?>
+                                <?php $editLink = 'organisation_reports.php?org_id=' . urlencode((string) $row['user_id']) . '&report_type=' . urlencode((string) $row['report_type']) . '&edit_param_id=' . urlencode((string) $row['parameter_id']) . '&edit_org=1'; ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars((string) $row['organisation_name']); ?></td>
                                     <td><?php echo htmlspecialchars((string) $row['report_name']); ?></td>
                                     <td><?php echo htmlspecialchars((string) $row['parameter_name']); ?></td>
                                     <td><?php echo htmlspecialchars((string) $row['category']); ?></td>
-                                    <td><?php echo $row['weight_percent'] === null ? '-' : htmlspecialchars((string) $row['weight_percent']) . '%'; ?></td>
-                                    <td><span class="badge <?php echo $rowStatus; ?>"><?php echo htmlspecialchars((string) $row['status']); ?></span></td>
+                                    <td><a href="<?php echo htmlspecialchars($editLink); ?>" class="btn btn-sm btn-outline-primary">Edit</a></td>
                                 </tr>
                                 <?php endforeach; ?>
                                 <?php endif; ?>
@@ -444,7 +648,9 @@ if ($prefillOrgId > 0) {
                         </table>
                     </div>
                 </div>
+                <?php endif; ?>
 
+                <?php if ($prefillOrgId > 0): ?>
                 <div class="card shadow-sm mt-4">
                     <div class="card-header bg-light">
                         <h5 class="mb-0">Available Organisations</h5>
@@ -477,6 +683,11 @@ if ($prefillOrgId > 0) {
                         </table>
                     </div>
                 </div>
+                <?php else: ?>
+                <div class="alert alert-info mt-4" role="alert">
+                    Select an organisation first to view configured parameters and available organisations.
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -503,12 +714,15 @@ if ($prefillOrgId > 0) {
         }
 
         const reportName = document.getElementById('reportName');
+        const parameterWeight = document.getElementById('parameterWeight');
+        const parameterStatus = document.getElementById('parameterStatus');
         const reportParameterBox = document.getElementById('reportParameterBox');
         const reportParameterTitle = document.getElementById('reportParameterTitle');
         const reportParameterTableBody = document.getElementById('reportParameterTableBody');
         const addParameterRowBtn = document.getElementById('addParameterRowBtn');
 
         const reportOrgId = document.getElementById('reportOrgId');
+        const reportDefaults = <?php echo json_encode($reportDefaults, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
         const sharedCategories = ['Coach Interior', 'Coach Exterior', 'Watering'];
         let rowCount = 0;
@@ -529,12 +743,38 @@ if ($prefillOrgId > 0) {
             });
         }
 
+        function applyReportDefaults() {
+            if (!reportOrgId || !reportName) {
+                return;
+            }
+
+            const selectedOrgId = reportOrgId.value;
+            const selectedReportType = reportName.value;
+            if (!selectedOrgId || !selectedReportType) {
+                return;
+            }
+
+            const key = `${selectedOrgId}__${selectedReportType}`;
+            const defaults = reportDefaults[key];
+            if (!defaults) {
+                return;
+            }
+
+            if (parameterWeight) {
+                parameterWeight.value = defaults.weight_percent ?? '';
+            }
+            if (parameterStatus && (defaults.status === 'Active' || defaults.status === 'Inactive')) {
+                parameterStatus.value = defaults.status;
+            }
+        }
+
         function addParameterRow() {
             rowCount += 1;
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="row-index"></td>
                 <td>
+                    <input type="hidden" name="parameterId[]" value="">
                     <input type="text" name="parameterName[]" class="form-control form-control-sm parameter-input" placeholder="Enter parameter" required>
                 </td>
                 <td>
@@ -555,6 +795,7 @@ if ($prefillOrgId > 0) {
 
         reportName.addEventListener('change', function () {
             if (this.value === 'Normal Report' || this.value === 'Intensive Report') {
+                applyReportDefaults();
                 reportParameterBox.classList.remove('d-none');
                 reportParameterTitle.textContent = `${this.value} - Add Parameters & Categories`;
                 if (reportParameterTableBody.children.length === 0) {
@@ -607,16 +848,25 @@ if ($prefillOrgId > 0) {
             }
         });
 
-        // Show one row by default for better UX.
-        addParameterRow();
-        reportParameterBox.classList.remove('d-none');
-        reportParameterTitle.textContent = 'Add Parameters & Categories';
+        // Keep one row by default and respect pre-selected report in edit flow.
+        if (reportName.value === 'Normal Report' || reportName.value === 'Intensive Report') {
+            reportParameterBox.classList.remove('d-none');
+            reportParameterTitle.textContent = `${reportName.value} - Add Parameters & Categories`;
+        }
 
-        if (reportOrgId && reportOrgId.value !== '') {
+        if (reportParameterTableBody.children.length === 0) {
+            addParameterRow();
+        }
+
+        reindexRows();
+
+        if (reportOrgId) {
             reportOrgId.addEventListener('change', function () {
-                // no-op, placeholder for future org-specific filtering
+                applyReportDefaults();
             });
         }
+
+        applyReportDefaults();
     </script>
 </body>
 </html>

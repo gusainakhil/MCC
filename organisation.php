@@ -325,11 +325,7 @@ if ($stationResult) {
                                     <!-- Organisation Section -->
                                     <div class="mb-4">
                                         <h6 class="text-primary mb-3"><i class="bi bi-diagram-3"></i> Organisation Details</h6>
-                                    <div class="mb-3">
-                                        <a href="organisation_reports.php" class="btn btn-outline-primary">
-                                            <i class="bi bi-journal-plus"></i> Add Organisation Report, Parameter & Category
-                                        </a>
-                                    </div>
+                               
                                     <div class="mb-3">
                                         <label for="organisationName" class="form-label">Organisation Name <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="organisationName" name="organisationName" placeholder="Enter organisation name" value="<?php echo htmlspecialchars($formData['organisationName']); ?>" required>
