@@ -1,22 +1,23 @@
-# 🚀 Quick Start Guide
+# Quick Start Guide
 
-Get the Railway MCC Dashboard up and running in minutes!
-
----
-
-## ⚡ 5-Minute Setup
-
-### Option 1: Open Directly (Fastest)
-1. Navigate to the project folder
-2. Double-click `index.html`
-3. Dashboard opens in default browser ✅
-
-**Pros**: Instant, no installation
-**Cons**: Limited local server features
+Get the Railway MCC PHP dashboard up and running in minutes.
 
 ---
 
-### Option 2: Python Local Server (Recommended)
+## 5-Minute Setup
+
+### Option 1: PHP Built-in Server (Recommended)
+
+```bash
+cd /path/to/MCC
+php -S localhost:8000
+```
+
+Then open: `http://localhost:8000/index.php`
+
+---
+
+### Option 2: Python Local Server
 
 #### macOS/Linux:
 ```bash
@@ -30,7 +31,7 @@ cd path\to\MCC
 python -m http.server 8000
 ```
 
-Then open: `http://localhost:8000`
+Then open: `http://localhost:8000/index.php`
 
 ---
 
@@ -45,25 +46,14 @@ cd /path/to/MCC
 http-server -p 8000
 ```
 
-Open: `http://localhost:8000`
+Open: `http://localhost:8000/index.php`
 
 ---
 
-### Option 4: PHP Built-in Server
-
-```bash
-cd /path/to/MCC
-php -S localhost:8000
-```
-
-Open: `http://localhost:8000`
-
----
-
-### Option 5: VS Code Live Server Extension
+### Option 4: VS Code Live Server Extension
 
 1. Install "Live Server" extension
-2. Right-click `index.html`
+2. Right-click `index.php`
 3. Click "Open with Live Server"
 4. Automatically opens at `http://127.0.0.1:5500` ✅
 
@@ -102,16 +92,16 @@ server {
 
 ---
 
-## 📁 File Structure Quick Check
+## File Structure Quick Check
 
 ```
-✓ index.html                   ← Dashboard
-✓ create_user.html             ← Users
-✓ zones.html                   ← Zones
-✓ stations.html                ← Stations
-✓ contracts.html               ← Contracts
-✓ inspection_form.html         ← Inspections
-✓ report.html                  ← Reports
+✓ index.php                    ← Dashboard
+✓ organisation.php             ← Organisation setup
+✓ organisation_list.php        ← Organisation list
+✓ organisation_reports.php     ← Reports setup
+✓ organisation_pdf.php         ← Print/PDF page
+✓ stations.php                 ← Station setup
+✓ connection.php               ← DB connection
 ✓ assets/css/style.css         ← Styling
 ✓ assets/js/script.js          ← JavaScript
 ✓ .htaccess                    ← Apache config
@@ -122,16 +112,16 @@ If all files are present ✅, ready to deploy!
 
 ---
 
-## 🧪 Testing the Dashboard
+## Testing the Dashboard
 
 ### Test All Pages
-- [ ] Dashboard loads with stats cards
+- [ ] Dashboard loads from `index.php`
 - [ ] All sidebar links work
-- [ ] Forms display correctly
-- [ ] Tables with sample data visible
+- [ ] Organisation setup flow works
+- [ ] Organisation reports setup supports multi-report save
+- [ ] Organisation PDF opens and prints correctly
 - [ ] Responsive on mobile view (F12)
 - [ ] Print functionality works
-- [ ] CSV export works
 
 ### Mobile Testing
 1. Open browser DevTools (F12)
@@ -172,7 +162,25 @@ If all files are present ✅, ready to deploy!
 
 ---
 
-## 🔌 Next Steps: Backend Integration
+## Database Migration (Important)
+
+If you enabled Chemical/Machine report fields, run:
+
+```sql
+ALTER TABLE Mcc_parameters
+MODIFY category VARCHAR(150) NOT NULL;
+```
+
+And ensure `Mcc_reports.report_type` enum includes:
+- Normal Report
+- Intensive Report
+- Chemical Report
+- Machine Report
+- Attendance Report
+
+---
+
+## Next Steps
 
 ### 1. Choose Backend Framework
 - **PHP**: Native, easy integration
@@ -193,8 +201,8 @@ document.getElementById('inspectionForm').addEventListener('submit', function(e)
 });
 ```
 
-### 4. Add Authentication
-- Login page
+### 4. Add Authentication Hardening
+- Login page improvements
 - Session management
 - Password hashing
 

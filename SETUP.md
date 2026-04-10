@@ -1,6 +1,6 @@
 # MCC Dashboard - Setup & Configuration Guide
 
-Complete setup instructions for Railway Mechanized Cleaning Coach Management System
+Complete setup instructions for Railway Mechanized Cleaning Coach Management System (PHP version).
 
 ---
 
@@ -43,13 +43,13 @@ cd MCC
 ls -la
 
 # Expected output:
-# index.html
-# create_user.html
-# zones.html
-# stations.html
-# contracts.html
-# inspection_form.html
-# report.html
+# index.php
+# organisation.php
+# organisation_list.php
+# organisation_reports.php
+# organisation_pdf.php
+# stations.php
+# connection.php
 # assets/
 #   css/style.css
 #   js/script.js
@@ -95,9 +95,9 @@ Set your default browser for opening files:
 ### Method 1: Direct Browser (No Server)
 ```bash
 # Navigate to folder and open
-open index.html          # macOS
-xdg-open index.html      # Linux
-start index.html         # Windows
+open index.php          # macOS
+xdg-open index.php      # Linux
+start index.php         # Windows
 ```
 
 **Note**: Some features like CSV export may not work without a server.
@@ -113,7 +113,7 @@ python3 -m http.server 8000
 python -m SimpleHTTPServer 8000
 ```
 
-Visit: `http://localhost:8000`
+Visit: `http://localhost:8000/index.php`
 
 ### Method 3: Node.js HTTP Server
 ```bash
@@ -125,7 +125,7 @@ cd /path/to/MCC
 http-server -p 8000 -c-1
 ```
 
-Visit: `http://localhost:8000`
+Visit: `http://localhost:8000/index.php`
 
 ### Method 4: NPX (No Installation)
 ```bash
@@ -143,7 +143,7 @@ Visit: `http://localhost:8000`
 
 ### Method 6: VS Code Live Server
 1. Install "Live Server" extension by Ritwick Dey
-2. Right-click `index.html`
+2. Right-click `index.php`
 3. Select "Open with Live Server"
 4. Auto-opens at `http://127.0.0.1:5500`
 5. Auto-refreshes on file changes ✅
@@ -166,6 +166,17 @@ Visit: `http://localhost:8000`
 ---
 
 ## Production Deployment
+
+### Important DB Migration for New Report Types
+
+Run this once on upgraded environments:
+
+```sql
+ALTER TABLE Mcc_parameters
+MODIFY category VARCHAR(150) NOT NULL;
+```
+
+Also verify `Mcc_reports.report_type` enum includes `Chemical Report`, `Machine Report`, and `Attendance Report`.
 
 ### Shared Hosting (Bluehost, GoDaddy, Hostinger)
 

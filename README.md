@@ -1,28 +1,59 @@
 # Railway Mechanized Cleaning Coach (MCC) Management System
-## Modern Admin Dashboard UI
+## PHP Admin Dashboard
 
-A clean, professional, and fully responsive admin dashboard frontend built with HTML5, Bootstrap 5, and vanilla JavaScript.
+A responsive MCC admin dashboard built with PHP, Bootstrap 5, MySQL, and vanilla JavaScript.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 MCC/
-├── index.html                  # Dashboard Overview
-├── create_user.html            # User Management
-├── zones.html                  # Zone Master Data
-├── stations.html               # Station Master Data
-├── contracts.html              # Contract Management
-├── inspection_form.html        # MCC Inspection Entry Form
-├── report.html                 # Reports & Analytics
+├── index.php                   # Dashboard
+├── connection.php              # DB connection
+├── sidebar.php                 # Shared sidebar
+├── organisation.php            # Organisation setup
+├── organisation_list.php       # Organisation list
+├── organisation_reports.php    # Multi-report + parameter setup
+├── organisation_pdf.php        # Organisation printable/PDF view
+├── stations.php                # Station master and mapping
 ├── assets/
-│   ├── css/
-│   │   └── style.css          # Custom styling (production-ready)
-│   └── js/
-│       └── script.js           # Shared utilities & helpers
-└── README.md                   # This file
+│   ├── css/style.css           # Shared styling
+│   └── js/script.js            # Shared scripts
+├── DATABASE_SCHEMA.sql         # DB schema
+├── DATABASE_SCHEMA.md          # DB flow docs
+├── QUICKSTART.md               # Quick run steps
+└── SETUP.md                    # Setup/config guide
 ```
+
+---
+
+## Latest Updates
+
+1. Organisation report setup now supports multi-select reports in one save.
+2. Supported report types: Normal, Intensive, Chemical, Machine, Attendance.
+3. Report-specific parameter fields added:
+  - Machine Report: Machine Type + Nos. of machines
+  - Chemical Report: Name of Chemical + Quantity of chemical per coach
+4. Organisation PDF now includes:
+  - Beatle Analytics MCC Document heading
+  - Organisation name
+  - Default password notice: 123456
+  - Login link: http://mcc.beatlebuddy.com/
+5. Reports-wise parameter tables added in printable PDF output.
+
+---
+
+## Database Note
+
+If you are upgrading an older DB where category is ENUM, run migration:
+
+```sql
+ALTER TABLE Mcc_parameters
+MODIFY category VARCHAR(150) NOT NULL;
+```
+
+And ensure report type ENUM includes all active report types.
 
 ---
 

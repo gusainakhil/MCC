@@ -10,20 +10,68 @@ $editingParameterId = isset($_GET['edit_param_id']) ? (int) $_GET['edit_param_id
 $isEditOrgFlow = isset($_GET['edit_org']) && $_GET['edit_org'] === '1';
 $organisationOptions = [];
 $selectedOrganisation = null;
-$formParameterRows = [];
-$validReportTypes = ['Normal Report', 'Intensive Report', 'Attendance Report'];
+$formParameterRowsByType = [];
+$prefillSelectedReportTypes = [];
+$prefillWeightPercentByType = [];
+$prefillStatusByType = [];
+$validReportTypes = ['Normal Report', 'Intensive Report', 'Chemical Report', 'Machine Report', 'Attendance Report'];
 $validStatuses = ['Active', 'Inactive'];
 $validCategories = ['Coach Interior', 'Coach Exterior', 'Watering'];
 $reportPageUrls = [
     'Normal Report' => 'normal_report.php',
     'Intensive Report' => 'intensive_report.php',
+    'Chemical Report' => 'chemical_report.php',
+    'Machine Report' => 'machine_report.php',
     'Attendance Report' => 'attendence.php',
+];
+$reportTypeRequiresParameters = [
+    'Normal Report' => true,
+    'Intensive Report' => true,
+    'Chemical Report' => true,
+    'Machine Report' => true,
+    'Attendance Report' => false,
+];
+$reportFieldMeta = [
+    'Normal Report' => [
+        'parameter_label' => 'Parameter',
+        'parameter_placeholder' => 'Enter parameter',
+        'category_label' => 'Category',
+        'category_type' => 'select',
+        'category_placeholder' => '-- Select Category --',
+    ],
+    'Intensive Report' => [
+        'parameter_label' => 'Parameter',
+        'parameter_placeholder' => 'Enter parameter',
+        'category_label' => 'Category',
+        'category_type' => 'select',
+        'category_placeholder' => '-- Select Category --',
+    ],
+    'Chemical Report' => [
+        'parameter_label' => 'Name of Chemical',
+        'parameter_placeholder' => 'Enter chemical name',
+        'category_label' => 'Quantity of chemical per coach',
+        'category_type' => 'text',
+        'category_placeholder' => 'Enter quantity per coach',
+    ],
+    'Machine Report' => [
+        'parameter_label' => 'Machine Type',
+        'parameter_placeholder' => 'Enter machine type',
+        'category_label' => 'Nos. of machines',
+        'category_type' => 'number',
+        'category_placeholder' => 'Enter number of machines',
+    ],
+    'Attendance Report' => [
+        'parameter_label' => 'Parameter',
+        'parameter_placeholder' => 'Enter parameter',
+        'category_label' => 'Category',
+        'category_type' => 'select',
+        'category_placeholder' => '-- Select Category --',
+    ],
 ];
 $dbSupportedReportTypes = $validReportTypes;
 $attendanceReportSupported = true;
 $reportDefaults = [];
-$prefillWeightPercent = '';
-$prefillParameterStatus = 'Active';
+$prefillReportType = in_array($prefillReportType, $validReportTypes, true) ? $prefillReportType : '';
 
 $reportTypeMetaSql = "
     SELECT COLUMN_TYPE
@@ -54,14 +102,6 @@ if ($reportTypeMetaResult) {
     }
 }
 $attendanceReportSupported = in_array('Attendance Report', $dbSupportedReportTypes, true);
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])) {
-    $prefillWeightPercent = isset($_POST['parameterWeight']) ? trim((string) $_POST['parameterWeight']) : '';
-    $postedStatus = isset($_POST['parameterStatus']) ? trim((string) $_POST['parameterStatus']) : '';
-    if (in_array($postedStatus, $validStatuses, true)) {
-        $prefillParameterStatus = $postedStatus;
-    }
-}
 
 $organisationSql = "
     SELECT
@@ -121,7 +161,14 @@ if ($editingParameterId > 0) {
                 $prefillReportType = (string) $editParameterRow['report_type'];
             }
 
-            $formParameterRows[] = [
+            if (!in_array($prefillReportType, $prefillSelectedReportTypes, true)) {
+                $prefillSelectedReportTypes[] = $prefillReportType;
+            }
+            if (!isset($formParameterRowsByType[$prefillReportType])) {
+                $formParameterRowsByType[$prefillReportType] = [];
+            }
+
+            $formParameterRowsByType[$prefillReportType][] = [
                 'id' => (int) $editParameterRow['parameter_id'],
                 'name' => (string) $editParameterRow['parameter_name'],
                 'category' => (string) $editParameterRow['category'],
@@ -135,113 +182,179 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
     if ($organisationId > 0 && $prefillOrgId <= 0) {
         $prefillOrgId = $organisationId;
     }
-    $reportType = isset($_POST['reportName']) ? trim($_POST['reportName']) : '';
-    if ($reportType !== '') {
-        $prefillReportType = $reportType;
-    }
-    $pageUrl = isset($reportPageUrls[$reportType]) ? $reportPageUrls[$reportType] : '';
-    $weightPercent = isset($_POST['parameterWeight']) && $_POST['parameterWeight'] !== '' ? (float) $_POST['parameterWeight'] : null;
-    $status = isset($_POST['parameterStatus']) ? trim($_POST['parameterStatus']) : 'Active';
-    $parameterIds = isset($_POST['parameterId']) && is_array($_POST['parameterId']) ? $_POST['parameterId'] : [];
-    $parameterNames = isset($_POST['parameterName']) && is_array($_POST['parameterName']) ? $_POST['parameterName'] : [];
-    $categories = isset($_POST['category']) && is_array($_POST['category']) ? $_POST['category'] : [];
-
-    if ($organisationId <= 0 || !in_array($reportType, $dbSupportedReportTypes, true)) {
-        $alertMessage = 'Please select an organisation and a valid report name.';
-        $alertType = 'danger';
-        if ($reportType === 'Attendance Report' && !$attendanceReportSupported) {
-            $alertMessage = 'Attendance Report is not enabled in database yet. Please ask admin to add it in Mcc_reports.report_type enum.';
+    $selectedReportTypesRaw = isset($_POST['reportTypes']) && is_array($_POST['reportTypes']) ? $_POST['reportTypes'] : [];
+    $selectedReportTypes = [];
+    foreach ($selectedReportTypesRaw as $reportTypeValue) {
+        $reportTypeValue = trim((string) $reportTypeValue);
+        if ($reportTypeValue !== '' && in_array($reportTypeValue, $dbSupportedReportTypes, true) && !in_array($reportTypeValue, $selectedReportTypes, true)) {
+            $selectedReportTypes[] = $reportTypeValue;
         }
-    } elseif ($status === '' || !in_array($status, $validStatuses, true)) {
-        $alertMessage = 'Please select a valid status.';
+    }
+
+    $prefillSelectedReportTypes = $selectedReportTypes;
+    $postedWeightsByType = isset($_POST['parameterWeight']) && is_array($_POST['parameterWeight']) ? $_POST['parameterWeight'] : [];
+    $postedStatusesByType = isset($_POST['parameterStatus']) && is_array($_POST['parameterStatus']) ? $_POST['parameterStatus'] : [];
+    $postedParameterIdsByType = isset($_POST['parameterId']) && is_array($_POST['parameterId']) ? $_POST['parameterId'] : [];
+    $postedParameterNamesByType = isset($_POST['parameterName']) && is_array($_POST['parameterName']) ? $_POST['parameterName'] : [];
+    $postedCategoriesByType = isset($_POST['category']) && is_array($_POST['category']) ? $_POST['category'] : [];
+
+    foreach ($selectedReportTypes as $selectedType) {
+        $weightValue = isset($postedWeightsByType[$selectedType]) ? trim((string) $postedWeightsByType[$selectedType]) : '';
+        $prefillWeightPercentByType[$selectedType] = $weightValue;
+
+        $statusValue = isset($postedStatusesByType[$selectedType]) ? trim((string) $postedStatusesByType[$selectedType]) : 'Active';
+        if (!in_array($statusValue, $validStatuses, true)) {
+            $statusValue = 'Active';
+        }
+        $prefillStatusByType[$selectedType] = $statusValue;
+    }
+
+    if ($organisationId <= 0 || count($selectedReportTypes) === 0) {
+        $alertMessage = 'Please select an organisation and at least one report.';
         $alertType = 'danger';
-    } elseif ($weightPercent !== null && ($weightPercent < 0 || $weightPercent > 100)) {
-        $alertMessage = 'Weight must be between 0 and 100.';
+    } elseif (count($selectedReportTypes) !== count($selectedReportTypesRaw)) {
+        $alertMessage = 'One or more selected reports are not supported by the database.';
         $alertType = 'danger';
     } else {
-        $normalizedRows = [];
-        for ($i = 0; $i < count($parameterNames); $i++) {
-            $pId = isset($parameterIds[$i]) ? (int) $parameterIds[$i] : 0;
-            $pName = trim((string) $parameterNames[$i]);
-            $cat = isset($categories[$i]) ? trim((string) $categories[$i]) : '';
+        $findUserSql = "
+            SELECT user_id, user_name, username, full_name
+            FROM Mcc_users
+            WHERE user_id = ?
+            LIMIT 1
+        ";
+        $findUser = $conn->prepare($findUserSql);
 
-            if ($pName === '' && $cat === '') {
-                continue;
-            }
-            if ($pName === '' || !in_array($cat, $validCategories, true)) {
-                $normalizedRows = [];
-                break;
-            }
-
-            $normalizedRows[] = ['id' => $pId, 'name' => $pName, 'category' => $cat];
-        }
-
-        if ($reportType !== 'Attendance Report' && count($normalizedRows) === 0) {
-            $alertMessage = 'Please add at least one valid Parameter and Category row.';
+        if (!$findUser) {
+            $alertMessage = 'Unable to prepare user lookup query.';
             $alertType = 'danger';
         } else {
-            $findUserSql = "
-                SELECT user_id, user_name, username, full_name
-                FROM Mcc_users
-                WHERE user_id = ?
-                LIMIT 1
-            ";
-            $findUser = $conn->prepare($findUserSql);
+            $findUser->bind_param('i', $organisationId);
+            $findUser->execute();
+            $userResult = $findUser->get_result();
+            $user = $userResult ? $userResult->fetch_assoc() : null;
+            $findUser->close();
 
-            if (!$findUser) {
-                $alertMessage = 'Unable to prepare user lookup query.';
+            if (!$user) {
+                $alertMessage = 'Selected organisation/user not found. Please create the user first in organisation setup.';
                 $alertType = 'danger';
             } else {
-                $findUser->bind_param('i', $organisationId);
-                $findUser->execute();
-                $userResult = $findUser->get_result();
-                $user = $userResult ? $userResult->fetch_assoc() : null;
-                $findUser->close();
+                $userId = (int) $user['user_id'];
+                $organisationName = trim((string) ($user['user_name'] ?? ''));
+                if ($organisationName === '') {
+                    $organisationName = trim((string) ($user['username'] ?? ''));
+                }
+                if ($organisationName === '') {
+                    $organisationName = trim((string) ($user['full_name'] ?? ''));
+                }
+                if ($organisationName === '') {
+                    $organisationName = 'User #' . $userId;
+                }
 
-                if (!$user) {
-                    $alertMessage = 'Selected organisation/user not found. Please create the user first in organisation setup.';
-                    $alertType = 'danger';
-                } else {
-                    $userId = (int) $user['user_id'];
-                    $organisationName = trim((string) ($user['user_name'] ?? ''));
-                    if ($organisationName === '') {
-                        $organisationName = trim((string) ($user['username'] ?? ''));
+                $conn->begin_transaction();
+                try {
+                    $reportLookup = $conn->prepare('SELECT report_id FROM Mcc_reports WHERE user_id = ? AND report_type = ? LIMIT 1');
+                    if (!$reportLookup) {
+                        throw new Exception('Unable to prepare report lookup query.');
                     }
-                    if ($organisationName === '') {
-                        $organisationName = trim((string) ($user['full_name'] ?? ''));
-                    }
-                    if ($organisationName === '') {
-                        $organisationName = 'User #' . $userId;
-                    }
-                    $baseReportName = $organisationName . ' - ' . $reportType;
-                    $reportName = $baseReportName;
-                    $suffix = 1;
 
-                    while (true) {
-                        $checkReport = $conn->prepare('SELECT report_id FROM Mcc_reports WHERE report_name = ? LIMIT 1');
-                        if (!$checkReport) {
-                            break;
+                    $checkReportName = $conn->prepare('SELECT report_id FROM Mcc_reports WHERE report_name = ? AND report_id <> ? LIMIT 1');
+                    if (!$checkReportName) {
+                        throw new Exception('Unable to prepare report name uniqueness query.');
+                    }
+
+                    $insertReport = $conn->prepare('
+                        INSERT INTO Mcc_reports (user_id, report_name, report_type, weight_percent, status, page_url)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ');
+                    if (!$insertReport) {
+                        throw new Exception('Unable to prepare report insert query.');
+                    }
+
+                    $updateReport = $conn->prepare('
+                        UPDATE Mcc_reports
+                        SET report_name = ?, weight_percent = ?, status = ?, page_url = ?
+                        WHERE report_id = ? AND user_id = ?
+                    ');
+                    if (!$updateReport) {
+                        throw new Exception('Unable to prepare report update query.');
+                    }
+
+                    $insertParam = $conn->prepare('
+                        INSERT INTO Mcc_parameters
+                            (user_id, report_id, parameter_name, category, assigned_by_user_id, status)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ');
+                    if (!$insertParam) {
+                        throw new Exception('Unable to prepare parameter insert query.');
+                    }
+
+                    $updateParam = $conn->prepare('
+                        UPDATE Mcc_parameters
+                        SET parameter_name = ?, category = ?, status = ?
+                        WHERE parameter_id = ? AND report_id = ? AND user_id = ?
+                    ');
+                    if (!$updateParam) {
+                        throw new Exception('Unable to prepare parameter update query.');
+                    }
+
+                    $findExistingParam = $conn->prepare('
+                        SELECT parameter_id
+                        FROM Mcc_parameters
+                        WHERE user_id = ? AND report_id = ? AND parameter_name = ? AND category = ?
+                        LIMIT 1
+                    ');
+                    if (!$findExistingParam) {
+                        throw new Exception('Unable to prepare duplicate parameter check query.');
+                    }
+
+                    foreach ($selectedReportTypes as $reportType) {
+                        $pageUrl = isset($reportPageUrls[$reportType]) ? $reportPageUrls[$reportType] : '';
+                        $weightRaw = isset($postedWeightsByType[$reportType]) ? trim((string) $postedWeightsByType[$reportType]) : '';
+                        $weightPercent = $weightRaw !== '' ? (float) $weightRaw : null;
+
+                        $status = isset($postedStatusesByType[$reportType]) ? trim((string) $postedStatusesByType[$reportType]) : 'Active';
+                        if (!in_array($status, $validStatuses, true)) {
+                            throw new Exception('Please select a valid status for ' . $reportType . '.');
                         }
-                        $checkReport->bind_param('s', $reportName);
-                        $checkReport->execute();
-                        $checkReport->store_result();
-                        $exists = $checkReport->num_rows > 0;
-                        $checkReport->close();
-
-                        if (!$exists) {
-                            break;
+                        if ($weightPercent !== null && ($weightPercent < 0 || $weightPercent > 100)) {
+                            throw new Exception('Weight must be between 0 and 100 for ' . $reportType . '.');
                         }
 
-                        $suffix++;
-                        $reportName = $baseReportName . ' (' . $suffix . ')';
-                    }
+                        $parameterIds = isset($postedParameterIdsByType[$reportType]) && is_array($postedParameterIdsByType[$reportType]) ? $postedParameterIdsByType[$reportType] : [];
+                        $parameterNames = isset($postedParameterNamesByType[$reportType]) && is_array($postedParameterNamesByType[$reportType]) ? $postedParameterNamesByType[$reportType] : [];
+                        $categories = isset($postedCategoriesByType[$reportType]) && is_array($postedCategoriesByType[$reportType]) ? $postedCategoriesByType[$reportType] : [];
 
-                    $conn->begin_transaction();
-                    try {
-                        $reportLookup = $conn->prepare('SELECT report_id FROM Mcc_reports WHERE user_id = ? AND report_type = ? LIMIT 1');
-                        if (!$reportLookup) {
-                            throw new Exception('Unable to prepare report lookup query.');
+                        $normalizedRows = [];
+                        $categoryUsesPresetList = in_array($reportType, ['Normal Report', 'Intensive Report'], true);
+                        $categoryRequiresNumericValue = $reportType === 'Machine Report';
+                        for ($i = 0; $i < count($parameterNames); $i++) {
+                            $pId = isset($parameterIds[$i]) ? (int) $parameterIds[$i] : 0;
+                            $pName = trim((string) $parameterNames[$i]);
+                            $cat = isset($categories[$i]) ? trim((string) $categories[$i]) : '';
+
+                            if ($pName === '' && $cat === '') {
+                                continue;
+                            }
+                            if ($pName === '' || $cat === '') {
+                                throw new Exception('Please fill all fields correctly for ' . $reportType . '.');
+                            }
+
+                            if ($categoryUsesPresetList && !in_array($cat, $validCategories, true)) {
+                                throw new Exception('Please select a valid category for ' . $reportType . '.');
+                            }
+
+                            if ($categoryRequiresNumericValue && (!is_numeric($cat) || (float) $cat <= 0)) {
+                                throw new Exception('Nos. of machines must be a number greater than 0 for Machine Report.');
+                            }
+
+                            $normalizedRows[] = ['id' => $pId, 'name' => $pName, 'category' => $cat];
                         }
+
+                        $requiresParameters = isset($reportTypeRequiresParameters[$reportType]) ? (bool) $reportTypeRequiresParameters[$reportType] : true;
+                        if ($requiresParameters && count($normalizedRows) === 0) {
+                            throw new Exception('Please add at least one valid Parameter and Category row for ' . $reportType . '.');
+                        }
+
                         $reportLookup->bind_param('is', $userId, $reportType);
                         $reportLookup->execute();
                         $reportLookup->store_result();
@@ -250,17 +363,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
                             $reportLookup->bind_result($existingReportId);
                             $reportLookup->fetch();
                         }
-                        $reportLookup->close();
+
+                        $baseReportName = $organisationName . ' - ' . $reportType;
+                        $reportName = $baseReportName;
+                        $nameSuffix = 1;
+                        while (true) {
+                            $excludeReportId = $existingReportId > 0 ? $existingReportId : 0;
+                            $checkReportName->bind_param('si', $reportName, $excludeReportId);
+                            $checkReportName->execute();
+                            $checkReportName->store_result();
+                            if ($checkReportName->num_rows === 0) {
+                                break;
+                            }
+                            $nameSuffix++;
+                            $reportName = $baseReportName . ' (' . $nameSuffix . ')';
+                        }
 
                         if ($existingReportId > 0) {
-                            $updateReport = $conn->prepare('
-                                UPDATE Mcc_reports
-                                SET report_name = ?, weight_percent = ?, status = ?, page_url = ?
-                                WHERE report_id = ? AND user_id = ?
-                            ');
-                            if (!$updateReport) {
-                                throw new Exception('Unable to prepare report update query.');
-                            }
                             if ($weightPercent === null) {
                                 $nullWeight = null;
                                 $updateReport->bind_param('sdssii', $reportName, $nullWeight, $status, $pageUrl, $existingReportId, $userId);
@@ -268,60 +387,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
                                 $updateReport->bind_param('sdssii', $reportName, $weightPercent, $status, $pageUrl, $existingReportId, $userId);
                             }
                             if (!$updateReport->execute()) {
-                                throw new Exception('Unable to update report details.');
+                                throw new Exception('Unable to update report details for ' . $reportType . '.');
                             }
                             $reportId = $existingReportId;
-                            $updateReport->close();
                         } else {
-                            $insertReport = $conn->prepare('
-                                INSERT INTO Mcc_reports (user_id, report_name, report_type, weight_percent, status, page_url)
-                                VALUES (?, ?, ?, ?, ?, ?)
-                            ');
-                            if (!$insertReport) {
-                                throw new Exception('Unable to prepare report insert query.');
-                            }
-
                             if ($weightPercent === null) {
                                 $nullWeight = null;
                                 $insertReport->bind_param('issdss', $userId, $reportName, $reportType, $nullWeight, $status, $pageUrl);
                             } else {
                                 $insertReport->bind_param('issdss', $userId, $reportName, $reportType, $weightPercent, $status, $pageUrl);
                             }
-
                             if (!$insertReport->execute()) {
-                                throw new Exception('Unable to save report details.');
+                                throw new Exception('Unable to save report details for ' . $reportType . '.');
                             }
-
                             $reportId = (int) $conn->insert_id;
-                            $insertReport->close();
-                        }
-
-                        $insertParam = $conn->prepare('
-                            INSERT INTO Mcc_parameters
-                                (user_id, report_id, parameter_name, category, assigned_by_user_id, status)
-                            VALUES (?, ?, ?, ?, ?, ?)
-                        ');
-                        if (!$insertParam) {
-                            throw new Exception('Unable to prepare parameter insert query.');
-                        }
-
-                        $updateParam = $conn->prepare('
-                            UPDATE Mcc_parameters
-                            SET parameter_name = ?, category = ?, status = ?
-                            WHERE parameter_id = ? AND report_id = ? AND user_id = ?
-                        ');
-                        if (!$updateParam) {
-                            throw new Exception('Unable to prepare parameter update query.');
-                        }
-
-                        $findExistingParam = $conn->prepare('
-                            SELECT parameter_id
-                            FROM Mcc_parameters
-                            WHERE user_id = ? AND report_id = ? AND parameter_name = ? AND category = ?
-                            LIMIT 1
-                        ');
-                        if (!$findExistingParam) {
-                            throw new Exception('Unable to prepare duplicate parameter check query.');
                         }
 
                         foreach ($normalizedRows as $row) {
@@ -332,7 +411,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
                             if ($paramId > 0) {
                                 $updateParam->bind_param('sssiii', $paramName, $category, $status, $paramId, $reportId, $userId);
                                 if (!$updateParam->execute()) {
-                                    throw new Exception('Unable to update parameter: ' . $paramName);
+                                    throw new Exception('Unable to update parameter: ' . $paramName . ' (' . $reportType . ')');
                                 }
                                 continue;
                             }
@@ -346,39 +425,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])
 
                             $insertParam->bind_param('iissis', $userId, $reportId, $paramName, $category, $userId, $status);
                             if (!$insertParam->execute()) {
-                                throw new Exception('Unable to save parameter: ' . $paramName);
+                                throw new Exception('Unable to save parameter: ' . $paramName . ' (' . $reportType . ')');
                             }
                         }
-
-                        $insertParam->close();
-                        $updateParam->close();
-                        $findExistingParam->close();
-                        $conn->commit();
-
-                        header('Location: organisation_list.php?saved=1');
-                        exit;
-                    } catch (Throwable $e) {
-                        $conn->rollback();
-                        $alertMessage = 'Save failed: ' . $e->getMessage();
-                        $alertType = 'danger';
                     }
+
+                    $reportLookup->close();
+                    $checkReportName->close();
+                    $insertReport->close();
+                    $updateReport->close();
+                    $insertParam->close();
+                    $updateParam->close();
+                    $findExistingParam->close();
+
+                    $conn->commit();
+                    header('Location: organisation_list.php?saved=1');
+                    exit;
+                } catch (Throwable $e) {
+                    $conn->rollback();
+                    $rawErrorMessage = (string) $e->getMessage();
+                    if (stripos($rawErrorMessage, "Data truncated for column 'category'") !== false) {
+                        $alertMessage = "Save failed: Database category column still uses old ENUM values. Please run migration: ALTER TABLE Mcc_parameters MODIFY category VARCHAR(150) NOT NULL;";
+                    } else {
+                        $alertMessage = 'Save failed: ' . $rawErrorMessage;
+                    }
+                    $alertType = 'danger';
                 }
             }
         }
     }
-}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config']) && $alertType === 'danger') {
-    $postedParameterIds = isset($_POST['parameterId']) && is_array($_POST['parameterId']) ? $_POST['parameterId'] : [];
-    $postedParameterNames = isset($_POST['parameterName']) && is_array($_POST['parameterName']) ? $_POST['parameterName'] : [];
-    $postedCategories = isset($_POST['category']) && is_array($_POST['category']) ? $_POST['category'] : [];
+    if ($alertType === 'danger') {
+        foreach ($selectedReportTypes as $selectedType) {
+            $typeParamIds = isset($postedParameterIdsByType[$selectedType]) && is_array($postedParameterIdsByType[$selectedType]) ? $postedParameterIdsByType[$selectedType] : [];
+            $typeParamNames = isset($postedParameterNamesByType[$selectedType]) && is_array($postedParameterNamesByType[$selectedType]) ? $postedParameterNamesByType[$selectedType] : [];
+            $typeCategories = isset($postedCategoriesByType[$selectedType]) && is_array($postedCategoriesByType[$selectedType]) ? $postedCategoriesByType[$selectedType] : [];
 
-    for ($i = 0; $i < count($postedParameterNames); $i++) {
-        $formParameterRows[] = [
-            'id' => isset($postedParameterIds[$i]) ? (int) $postedParameterIds[$i] : 0,
-            'name' => trim((string) $postedParameterNames[$i]),
-            'category' => isset($postedCategories[$i]) ? trim((string) $postedCategories[$i]) : '',
-        ];
+            if (!isset($formParameterRowsByType[$selectedType])) {
+                $formParameterRowsByType[$selectedType] = [];
+            }
+
+            for ($i = 0; $i < count($typeParamNames); $i++) {
+                $formParameterRowsByType[$selectedType][] = [
+                    'id' => isset($typeParamIds[$i]) ? (int) $typeParamIds[$i] : 0,
+                    'name' => trim((string) $typeParamNames[$i]),
+                    'category' => isset($typeCategories[$i]) ? trim((string) $typeCategories[$i]) : '',
+                ];
+            }
+        }
     }
 }
 
@@ -401,8 +495,10 @@ $configuredSql = "
         CASE r.report_type
             WHEN 'Normal Report' THEN 1
             WHEN 'Intensive Report' THEN 2
-            WHEN 'Attendance Report' THEN 3
-            ELSE 4
+            WHEN 'Chemical Report' THEN 3
+            WHEN 'Machine Report' THEN 4
+            WHEN 'Attendance Report' THEN 5
+            ELSE 6
         END,
         r.report_name ASC,
         p.created_at DESC
@@ -440,14 +536,36 @@ if ($reportDefaultsResult) {
     }
 }
 
-if (!($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'])) && $prefillOrgId > 0 && $prefillReportType !== '') {
-    $prefillKey = $prefillOrgId . '__' . $prefillReportType;
-    if (isset($reportDefaults[$prefillKey])) {
-        $prefillWeightPercent = (string) $reportDefaults[$prefillKey]['weight_percent'];
-        $statusFromDefault = (string) $reportDefaults[$prefillKey]['status'];
-        if (in_array($statusFromDefault, $validStatuses, true)) {
-            $prefillParameterStatus = $statusFromDefault;
+if (!($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config']))) {
+    if ($prefillReportType !== '' && in_array($prefillReportType, $dbSupportedReportTypes, true) && !in_array($prefillReportType, $prefillSelectedReportTypes, true)) {
+        $prefillSelectedReportTypes[] = $prefillReportType;
+    }
+
+    if ($prefillOrgId > 0) {
+        foreach ($prefillSelectedReportTypes as $selectedType) {
+            $prefillKey = $prefillOrgId . '__' . $selectedType;
+            if (isset($reportDefaults[$prefillKey])) {
+                if (!isset($prefillWeightPercentByType[$selectedType])) {
+                    $prefillWeightPercentByType[$selectedType] = (string) $reportDefaults[$prefillKey]['weight_percent'];
+                }
+                if (!isset($prefillStatusByType[$selectedType])) {
+                    $statusFromDefault = (string) $reportDefaults[$prefillKey]['status'];
+                    $prefillStatusByType[$selectedType] = in_array($statusFromDefault, $validStatuses, true) ? $statusFromDefault : 'Active';
+                }
+            }
         }
+    }
+}
+
+foreach ($dbSupportedReportTypes as $reportTypeOption) {
+    if (!isset($prefillWeightPercentByType[$reportTypeOption])) {
+        $prefillWeightPercentByType[$reportTypeOption] = '';
+    }
+    if (!isset($prefillStatusByType[$reportTypeOption])) {
+        $prefillStatusByType[$reportTypeOption] = 'Active';
+    }
+    if (!isset($formParameterRowsByType[$reportTypeOption])) {
+        $formParameterRowsByType[$reportTypeOption] = [];
     }
 }
 ?>
@@ -525,79 +643,160 @@ if (!($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="reportName" class="form-label">Report Name <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="reportName" name="reportName" required>
-                                        <option value="">-- Select Report --</option>
-                                        <option value="Normal Report" <?php echo $prefillReportType === 'Normal Report' ? 'selected' : ''; ?>>Normal Report</option>
-                                        <option value="Intensive Report" <?php echo $prefillReportType === 'Intensive Report' ? 'selected' : ''; ?>>Intensive Report</option>
-                                        <?php if ($attendanceReportSupported): ?>
-                                        <option value="Attendance Report" <?php echo $prefillReportType === 'Attendance Report' ? 'selected' : ''; ?>>Attendance Report</option>
+                                    <label class="form-label">Report Name <span class="text-danger">*</span></label>
+                                    <div class="border rounded p-3 bg-light">
+                                        <?php foreach ($dbSupportedReportTypes as $reportTypeOption): ?>
+                                        <?php
+                                            $reportTypeSlug = strtolower((string) preg_replace('/[^a-z0-9]+/i', '_', $reportTypeOption));
+                                            $isChecked = in_array($reportTypeOption, $prefillSelectedReportTypes, true);
+                                        ?>
+                                        <div class="form-check form-check-inline me-3 mb-2">
+                                            <input
+                                                class="form-check-input report-type-checkbox"
+                                                type="checkbox"
+                                                id="reportType_<?php echo htmlspecialchars($reportTypeSlug); ?>"
+                                                name="reportTypes[]"
+                                                value="<?php echo htmlspecialchars($reportTypeOption); ?>"
+                                                <?php echo $isChecked ? 'checked' : ''; ?>
+                                            >
+                                            <label class="form-check-label" for="reportType_<?php echo htmlspecialchars($reportTypeSlug); ?>">
+                                                <?php echo htmlspecialchars($reportTypeOption); ?>
+                                            </label>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <div class="form-text">You can select multiple reports and save all selected forms together.</div>
+                                </div>
+                            </div>
+
+                            <div id="multiReportFormsContainer">
+                                <?php foreach ($dbSupportedReportTypes as $reportTypeOption): ?>
+                                <?php
+                                    $reportTypeSlug = strtolower((string) preg_replace('/[^a-z0-9]+/i', '_', $reportTypeOption));
+                                    $requiresParameters = isset($reportTypeRequiresParameters[$reportTypeOption]) ? (bool) $reportTypeRequiresParameters[$reportTypeOption] : true;
+                                    $isSelected = in_array($reportTypeOption, $prefillSelectedReportTypes, true);
+                                    $fieldMeta = isset($reportFieldMeta[$reportTypeOption]) ? $reportFieldMeta[$reportTypeOption] : $reportFieldMeta['Normal Report'];
+                                    $parameterLabel = (string) $fieldMeta['parameter_label'];
+                                    $parameterPlaceholder = (string) $fieldMeta['parameter_placeholder'];
+                                    $categoryLabel = (string) $fieldMeta['category_label'];
+                                    $categoryType = (string) $fieldMeta['category_type'];
+                                    $categoryPlaceholder = (string) $fieldMeta['category_placeholder'];
+                                    $rowsForType = isset($formParameterRowsByType[$reportTypeOption]) ? $formParameterRowsByType[$reportTypeOption] : [];
+                                    if ($requiresParameters && $isSelected && count($rowsForType) === 0) {
+                                        $rowsForType[] = ['id' => 0, 'name' => '', 'category' => ''];
+                                    }
+                                ?>
+                                <div
+                                    class="card border-primary-subtle mb-3 report-config-card <?php echo $isSelected ? '' : 'd-none'; ?>"
+                                    data-report-type="<?php echo htmlspecialchars($reportTypeOption); ?>"
+                                    data-report-slug="<?php echo htmlspecialchars($reportTypeSlug); ?>"
+                                    data-requires-params="<?php echo $requiresParameters ? '1' : '0'; ?>"
+                                    data-parameter-label="<?php echo htmlspecialchars($parameterLabel); ?>"
+                                    data-parameter-placeholder="<?php echo htmlspecialchars($parameterPlaceholder); ?>"
+                                    data-category-label="<?php echo htmlspecialchars($categoryLabel); ?>"
+                                    data-category-type="<?php echo htmlspecialchars($categoryType); ?>"
+                                    data-category-placeholder="<?php echo htmlspecialchars($categoryPlaceholder); ?>"
+                                >
+                                    <div class="card-header bg-primary-subtle">
+                                        <h6 class="mb-0"><?php echo htmlspecialchars($reportTypeOption); ?> Configuration</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="parameterWeight_<?php echo htmlspecialchars($reportTypeSlug); ?>" class="form-label">Weight (%)</label>
+                                                <input
+                                                    type="number"
+                                                    class="form-control report-weight-input"
+                                                    id="parameterWeight_<?php echo htmlspecialchars($reportTypeSlug); ?>"
+                                                    name="parameterWeight[<?php echo htmlspecialchars($reportTypeOption); ?>]"
+                                                    min="0"
+                                                    max="100"
+                                                    placeholder="Enter weight"
+                                                    value="<?php echo htmlspecialchars((string) $prefillWeightPercentByType[$reportTypeOption]); ?>"
+                                                >
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="parameterStatus_<?php echo htmlspecialchars($reportTypeSlug); ?>" class="form-label">Status</label>
+                                                <select
+                                                    class="form-select report-status-input"
+                                                    id="parameterStatus_<?php echo htmlspecialchars($reportTypeSlug); ?>"
+                                                    name="parameterStatus[<?php echo htmlspecialchars($reportTypeOption); ?>]"
+                                                >
+                                                    <option value="Active" <?php echo $prefillStatusByType[$reportTypeOption] === 'Active' ? 'selected' : ''; ?>>Active</option>
+                                                    <option value="Inactive" <?php echo $prefillStatusByType[$reportTypeOption] === 'Inactive' ? 'selected' : ''; ?>>Inactive</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <?php if ($requiresParameters): ?>
+                                        <div class="card border-0 border-top pt-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="mb-0"><?php echo htmlspecialchars($reportTypeOption); ?> Parameters</h6>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-primary add-parameter-row-btn"
+                                                    data-report-type="<?php echo htmlspecialchars($reportTypeOption); ?>"
+                                                >
+                                                    <i class="bi bi-plus-circle"></i> Add Row
+                                                </button>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered table-sm mb-0">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th style="width: 80px;">#</th>
+                                                            <th><?php echo htmlspecialchars($parameterLabel); ?></th>
+                                                            <th style="width: 260px;"><?php echo htmlspecialchars($categoryLabel); ?></th>
+                                                            <th style="width: 120px;">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="report-parameter-table-body" id="reportParameterTableBody_<?php echo htmlspecialchars($reportTypeSlug); ?>" data-report-type="<?php echo htmlspecialchars($reportTypeOption); ?>">
+                                                        <?php foreach ($rowsForType as $row): ?>
+                                                        <tr>
+                                                            <td class="row-index"></td>
+                                                            <td>
+                                                                <input type="hidden" name="parameterId[<?php echo htmlspecialchars($reportTypeOption); ?>][]" value="<?php echo (int) $row['id']; ?>">
+                                                                <input type="text" name="parameterName[<?php echo htmlspecialchars($reportTypeOption); ?>][]" class="form-control form-control-sm parameter-input" placeholder="<?php echo htmlspecialchars($parameterPlaceholder); ?>" required value="<?php echo htmlspecialchars((string) $row['name']); ?>">
+                                                            </td>
+                                                            <td>
+                                                                <?php if ($categoryType === 'select'): ?>
+                                                                <select name="category[<?php echo htmlspecialchars($reportTypeOption); ?>][]" class="form-select form-select-sm category-input" required>
+                                                                    <option value=""><?php echo htmlspecialchars($categoryPlaceholder); ?></option>
+                                                                    <?php foreach ($validCategories as $categoryOption): ?>
+                                                                    <option value="<?php echo htmlspecialchars($categoryOption); ?>" <?php echo ((string) $row['category'] === $categoryOption) ? 'selected' : ''; ?>><?php echo htmlspecialchars($categoryOption); ?></option>
+                                                                    <?php endforeach; ?>
+                                                                </select>
+                                                                <?php else: ?>
+                                                                <input
+                                                                    type="<?php echo $categoryType === 'number' ? 'number' : 'text'; ?>"
+                                                                    name="category[<?php echo htmlspecialchars($reportTypeOption); ?>][]"
+                                                                    class="form-control form-control-sm category-input"
+                                                                    placeholder="<?php echo htmlspecialchars($categoryPlaceholder); ?>"
+                                                                    <?php if ($categoryType === 'number'): ?>min="1" step="1"<?php endif; ?>
+                                                                    required
+                                                                    value="<?php echo htmlspecialchars((string) $row['category']); ?>"
+                                                                >
+                                                                <?php endif; ?>
+                                                            </td>
+                                                            <td>
+                                                                <button type="button" class="btn btn-sm btn-outline-danger remove-parameter-row">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        <?php endforeach; ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <?php else: ?>
+                                        <div class="alert alert-info mb-0">
+                                            <?php echo htmlspecialchars($reportTypeOption); ?> does not require parameter rows.
+                                        </div>
                                         <?php endif; ?>
-                                    </select>
-                                </div>
-                            </div>
-
-                     
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="parameterWeight" class="form-label">Weight (%)</label>
-                                    <input type="number" class="form-control" id="parameterWeight" name="parameterWeight" min="0" max="100" placeholder="Enter weight" value="<?php echo htmlspecialchars($prefillWeightPercent); ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="parameterStatus" class="form-label">Status</label>
-                                    <select class="form-select" id="parameterStatus" name="parameterStatus">
-                                        <option value="Active" <?php echo $prefillParameterStatus === 'Active' ? 'selected' : ''; ?>>Active</option>
-                                        <option value="Inactive" <?php echo $prefillParameterStatus === 'Inactive' ? 'selected' : ''; ?>>Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div id="reportParameterBox" class="card border-primary-subtle mb-3 d-none">
-                                <div class="card-header bg-primary-subtle d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0" id="reportParameterTitle">Report Parameters</h6>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" id="addParameterRowBtn">
-                                        <i class="bi bi-plus-circle"></i> Add Row
-                                    </button>
-                                </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-sm mb-0" id="reportParameterTable">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th style="width: 80px;">#</th>
-                                                    <th>Parameter</th>
-                                                    <th style="width: 260px;">Category</th>
-                                                    <th style="width: 120px;">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="reportParameterTableBody">
-                                                <?php foreach ($formParameterRows as $row): ?>
-                                                <tr>
-                                                    <td class="row-index"></td>
-                                                    <td>
-                                                        <input type="hidden" name="parameterId[]" value="<?php echo (int) $row['id']; ?>">
-                                                        <input type="text" name="parameterName[]" class="form-control form-control-sm parameter-input" placeholder="Enter parameter" required value="<?php echo htmlspecialchars((string) $row['name']); ?>">
-                                                    </td>
-                                                    <td>
-                                                        <select name="category[]" class="form-select form-select-sm category-input" required>
-                                                            <option value="">-- Select Category --</option>
-                                                            <?php foreach ($validCategories as $categoryOption): ?>
-                                                            <option value="<?php echo htmlspecialchars($categoryOption); ?>" <?php echo ((string) $row['category'] === $categoryOption) ? 'selected' : ''; ?>><?php echo htmlspecialchars($categoryOption); ?></option>
-                                                            <?php endforeach; ?>
-                                                        </select>
-                                                    </td>
-                                                    <td>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger remove-parameter-row">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
                                     </div>
                                 </div>
+                                <?php endforeach; ?>
                             </div>
 
 
@@ -713,28 +912,32 @@ if (!($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'
             });
         }
 
-        const reportName = document.getElementById('reportName');
-        const parameterWeight = document.getElementById('parameterWeight');
-        const parameterStatus = document.getElementById('parameterStatus');
-        const reportParameterBox = document.getElementById('reportParameterBox');
-        const reportParameterTitle = document.getElementById('reportParameterTitle');
-        const reportParameterTableBody = document.getElementById('reportParameterTableBody');
-        const addParameterRowBtn = document.getElementById('addParameterRowBtn');
-
+        const orgReportForm = document.getElementById('orgReportForm');
         const reportOrgId = document.getElementById('reportOrgId');
+        const reportTypeCheckboxes = document.querySelectorAll('.report-type-checkbox');
+        const reportConfigCards = document.querySelectorAll('.report-config-card');
         const reportDefaults = <?php echo json_encode($reportDefaults, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
         const sharedCategories = ['Coach Interior', 'Coach Exterior', 'Watering'];
-        let rowCount = 0;
 
-        function buildCategoryOptions() {
+        function buildCategoryOptions(selectedCategory = '') {
             return sharedCategories
-                .map((category) => `<option value="${category}">${category}</option>`)
+                .map((category) => {
+                    const isSelected = selectedCategory === category ? 'selected' : '';
+                    return `<option value="${category}" ${isSelected}>${category}</option>`;
+                })
                 .join('');
         }
 
-        function reindexRows() {
-            const rows = reportParameterTableBody.querySelectorAll('tr');
+        function getReportCard(reportType) {
+            return Array.from(reportConfigCards).find((card) => card.dataset.reportType === reportType) || null;
+        }
+
+        function reindexRows(tableBody) {
+            if (!tableBody) {
+                return;
+            }
+            const rows = tableBody.querySelectorAll('tr');
             rows.forEach((row, index) => {
                 const indexCell = row.querySelector('.row-index');
                 if (indexCell) {
@@ -743,45 +946,80 @@ if (!($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'
             });
         }
 
-        function applyReportDefaults() {
-            if (!reportOrgId || !reportName) {
+        function applyReportDefaults(reportType) {
+            if (!reportOrgId || !reportType) {
                 return;
             }
 
             const selectedOrgId = reportOrgId.value;
-            const selectedReportType = reportName.value;
-            if (!selectedOrgId || !selectedReportType) {
+            if (!selectedOrgId) {
                 return;
             }
 
-            const key = `${selectedOrgId}__${selectedReportType}`;
+            const key = `${selectedOrgId}__${reportType}`;
             const defaults = reportDefaults[key];
             if (!defaults) {
                 return;
             }
 
-            if (parameterWeight) {
-                parameterWeight.value = defaults.weight_percent ?? '';
+            const card = getReportCard(reportType);
+            if (!card) {
+                return;
             }
-            if (parameterStatus && (defaults.status === 'Active' || defaults.status === 'Inactive')) {
-                parameterStatus.value = defaults.status;
+
+            const weightInput = card.querySelector('.report-weight-input');
+            const statusInput = card.querySelector('.report-status-input');
+
+            if (weightInput) {
+                weightInput.value = defaults.weight_percent ?? '';
+            }
+            if (statusInput && (defaults.status === 'Active' || defaults.status === 'Inactive')) {
+                statusInput.value = defaults.status;
             }
         }
 
-        function addParameterRow() {
-            rowCount += 1;
+        function addParameterRow(reportType) {
+            const card = getReportCard(reportType);
+            if (!card) {
+                return;
+            }
+
+            const tableBody = card.querySelector('.report-parameter-table-body');
+            if (!tableBody) {
+                return;
+            }
+
+            const parameterPlaceholder = card.dataset.parameterPlaceholder || 'Enter value';
+            const categoryType = card.dataset.categoryType || 'select';
+            const categoryPlaceholder = card.dataset.categoryPlaceholder || '-- Select --';
+
+            let categoryFieldHtml = '';
+            if (categoryType === 'select') {
+                categoryFieldHtml = `
+                    <select name="category[${reportType}][]" class="form-select form-select-sm category-input" required>
+                        <option value="">${categoryPlaceholder}</option>
+                        ${buildCategoryOptions()}
+                    </select>
+                `;
+            } else if (categoryType === 'number') {
+                categoryFieldHtml = `
+                    <input type="number" min="1" step="1" name="category[${reportType}][]" class="form-control form-control-sm category-input" placeholder="${categoryPlaceholder}" required>
+                `;
+            } else {
+                categoryFieldHtml = `
+                    <input type="text" name="category[${reportType}][]" class="form-control form-control-sm category-input" placeholder="${categoryPlaceholder}" required>
+                `;
+            }
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td class="row-index"></td>
                 <td>
-                    <input type="hidden" name="parameterId[]" value="">
-                    <input type="text" name="parameterName[]" class="form-control form-control-sm parameter-input" placeholder="Enter parameter" required>
+                    <input type="hidden" name="parameterId[${reportType}][]" value="">
+                    <input type="text" name="parameterName[${reportType}][]" class="form-control form-control-sm parameter-input" placeholder="${parameterPlaceholder}" required>
                 </td>
                 <td>
-                    <select name="category[]" class="form-select form-select-sm category-input" required>
-                        <option value="">-- Select Category --</option>
-                        ${buildCategoryOptions()}
-                    </select>
+                    ${categoryFieldHtml}
                 </td>
                 <td>
                     <button type="button" class="btn btn-sm btn-outline-danger remove-parameter-row">
@@ -789,31 +1027,50 @@ if (!($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'
                     </button>
                 </td>
             `;
-            reportParameterTableBody.appendChild(row);
-            reindexRows();
+            tableBody.appendChild(row);
+            reindexRows(tableBody);
         }
 
-        reportName.addEventListener('change', function () {
-            if (this.value === 'Normal Report' || this.value === 'Intensive Report') {
-                applyReportDefaults();
-                reportParameterBox.classList.remove('d-none');
-                reportParameterTitle.textContent = `${this.value} - Add Parameters & Categories`;
-                if (reportParameterTableBody.children.length === 0) {
-                    addParameterRow();
+        function toggleReportCards() {
+            reportConfigCards.forEach((card) => {
+                const reportType = card.dataset.reportType;
+                const requiresParams = card.dataset.requiresParams === '1';
+                const checkbox = Array.from(reportTypeCheckboxes).find((item) => item.value === reportType);
+                const isSelected = checkbox ? checkbox.checked : false;
+
+                card.classList.toggle('d-none', !isSelected);
+
+                if (!isSelected) {
+                    return;
                 }
-                return;
+
+                applyReportDefaults(reportType);
+                const tableBody = card.querySelector('.report-parameter-table-body');
+                if (requiresParams && tableBody && tableBody.children.length === 0) {
+                    addParameterRow(reportType);
+                }
+
+                if (tableBody) {
+                    reindexRows(tableBody);
+                }
+            });
+        }
+
+        reportTypeCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener('change', function () {
+                toggleReportCards();
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            const addButton = e.target.closest('.add-parameter-row-btn');
+            if (addButton) {
+                const reportType = addButton.dataset.reportType;
+                addParameterRow(reportType);
             }
-
-            reportParameterBox.classList.add('d-none');
-            reportParameterTableBody.innerHTML = '';
-            rowCount = 0;
         });
 
-        addParameterRowBtn.addEventListener('click', function () {
-            addParameterRow();
-        });
-
-        reportParameterTableBody.addEventListener('click', function (e) {
+        document.addEventListener('click', function (e) {
             const removeButton = e.target.closest('.remove-parameter-row');
             if (!removeButton) {
                 return;
@@ -822,51 +1079,87 @@ if (!($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_report_config'
             const row = removeButton.closest('tr');
             if (row) {
                 row.remove();
-                reindexRows();
-            }
+                const tableBody = removeButton.closest('.report-parameter-table-body');
+                reindexRows(tableBody);
 
-            if (reportParameterTableBody.children.length === 0) {
-                addParameterRow();
-            }
-        });
-
-        document.getElementById('orgReportForm').addEventListener('submit', function (e) {
-
-            if (!reportParameterBox.classList.contains('d-none')) {
-                const rows = reportParameterTableBody.querySelectorAll('tr');
-                const hasEmptyValues = Array.from(rows).some((row) => {
-                    const parameterValue = row.querySelector('.parameter-input')?.value.trim();
-                    const categoryValue = row.querySelector('.category-input')?.value;
-                    return !parameterValue || !categoryValue;
-                });
-
-                if (hasEmptyValues) {
-                    e.preventDefault();
-                    alert('Please fill all Parameter and Category rows before saving.');
-                    return;
+                const card = removeButton.closest('.report-config-card');
+                if (card && card.dataset.requiresParams === '1' && tableBody && tableBody.children.length === 0) {
+                    addParameterRow(card.dataset.reportType);
                 }
             }
         });
 
-        // Keep one row by default and respect pre-selected report in edit flow.
-        if (reportName.value === 'Normal Report' || reportName.value === 'Intensive Report') {
-            reportParameterBox.classList.remove('d-none');
-            reportParameterTitle.textContent = `${reportName.value} - Add Parameters & Categories`;
-        }
+        orgReportForm.addEventListener('submit', function (e) {
+            const selectedCheckboxes = Array.from(reportTypeCheckboxes).filter((checkbox) => checkbox.checked);
 
-        if (reportParameterTableBody.children.length === 0) {
-            addParameterRow();
-        }
+            if (selectedCheckboxes.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one report.');
+                return;
+            }
 
-        reindexRows();
+            const hasInvalidSelectedReport = selectedCheckboxes.some((checkbox) => {
+                const reportType = checkbox.value;
+                const card = getReportCard(reportType);
+                if (!card) {
+                    return true;
+                }
+
+                const requiresParams = card.dataset.requiresParams === '1';
+                if (!requiresParams) {
+                    return false;
+                }
+
+                const categoryType = card.dataset.categoryType || 'select';
+
+                const rows = card.querySelectorAll('.report-parameter-table-body tr');
+                if (rows.length === 0) {
+                    return true;
+                }
+
+                return Array.from(rows).some((row) => {
+                    const parameterValue = row.querySelector('.parameter-input')?.value.trim();
+                    const categoryValueRaw = row.querySelector('.category-input')?.value;
+                    const categoryValue = typeof categoryValueRaw === 'string' ? categoryValueRaw.trim() : '';
+                    if (!parameterValue || !categoryValue) {
+                        return true;
+                    }
+
+                    if (categoryType === 'number') {
+                        const numericValue = Number(categoryValue);
+                        if (!Number.isFinite(numericValue) || numericValue <= 0) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
+            });
+
+            if (hasInvalidSelectedReport) {
+                e.preventDefault();
+                alert('Please fill all Parameter and Category rows for selected reports before saving.');
+            }
+        });
+
+        reportConfigCards.forEach((card) => {
+            const tableBody = card.querySelector('.report-parameter-table-body');
+            if (tableBody) {
+                reindexRows(tableBody);
+            }
+        });
 
         if (reportOrgId) {
             reportOrgId.addEventListener('change', function () {
-                applyReportDefaults();
+                reportTypeCheckboxes.forEach((checkbox) => {
+                    if (checkbox.checked) {
+                        applyReportDefaults(checkbox.value);
+                    }
+                });
             });
         }
 
-        applyReportDefaults();
+        toggleReportCards();
     </script>
 </body>
 </html>

@@ -10,10 +10,11 @@ This document explains the current database flow in simple steps so the next dev
    Zone -> Division -> Station
 2. Users are created and linked to a station.
 3. Train master data is stored per user.
-4. Reports are created per user (Normal or Intensive) with billing weightage.
+4. Reports are created per user (Normal, Intensive, Chemical, Machine, Attendance) with billing weightage.
 5. Report parameters are defined and assigned.
 6. Normal and Intensive report entry data is stored separately.
-7. Penalty-related data is stored in two parts:
+7. Organisation PDF view groups parameters report-wise for printing.
+8. Penalty-related data is stored in two parts:
    - Detailed penalty records
    - Penalty impose section entries
 
@@ -54,12 +55,12 @@ This document explains the current database flow in simple steps so the next dev
 
 - Mcc_reports
   - Report definitions per user.
-  - report_type: Normal Report or Intensive Report.
+  - report_type: Normal Report, Intensive Report, Chemical Report, Machine Report, Attendance Report.
   - weight_percent is report-level billing weightage.
 
 - Mcc_parameters
   - Parameter setup and assignment details.
-  - Includes category, report mapping, assignment metadata.
+  - Includes category (stored as text), report mapping, assignment metadata.
 
 ### D) Transactional Report Data
 
@@ -92,7 +93,7 @@ This document explains the current database flow in simple steps so the next dev
 4. Create User and assign station.
 5. Add user trains in Mcc_train_information.
 6. Create report in Mcc_reports with report_type and weight_percent.
-7. Configure report parameters in Mcc_parameters.
+7. Configure report parameters in Mcc_parameters (category is text so report-specific values are allowed).
 8. Save report run values:
    - Normal report values in Mcc_normal_report_data
    - Intensive report values in Mcc_intensive_report_data
@@ -144,11 +145,11 @@ If you are starting fresh, follow this order in backend APIs:
 5. Train API
 6. Report API
 7. Parameter API
-8. Report Submit APIs (Normal/Intensive)
+8. Report Submit APIs (Normal/Intensive and future Chemical/Machine ingestion endpoints)
 9. Penalty APIs (Detailed + Impose)
 
 This sequence avoids foreign key and workflow confusion.
 
 ---
 
-Last Updated: 6 April 2026
+Last Updated: 10 April 2026
