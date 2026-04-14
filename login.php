@@ -1,8 +1,8 @@
 <?php
-require_once __DIR__ . '/../connection.php';
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/connection.php';
+require_once __DIR__ . '/user-dashboard/includes/auth.php';
 
-ud_auth_redirect_if_logged_in('index.php');
+ud_redirect_authenticated_user(false);
 
 $errorMessage = '';
 $loginValue = '';
@@ -44,7 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errorMessage = 'Your account is inactive.';
             } else {
                 ud_login_user($loginUser);
-                header('Location: index.php?user_id=' . (int) $loginUser['user_id']);
+                $target = ud_role_home_path((string) ($loginUser['role'] ?? ''), (int) ($loginUser['user_id'] ?? 0), false);
+                header('Location: ' . $target);
                 exit;
             }
         }
@@ -56,13 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCC User Login</title>
+    <title>MCC Login</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="user-dashboard/assets/css/style.css" rel="stylesheet">
 </head>
 <body>
     <div class="login-shell">
@@ -74,14 +75,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="brand-mark">MCC</div>
                 <div>
                     <div class="brand-name">BeatleBuddy Railway</div>
-                    <div class="brand-subtitle">User Portal Login</div>
+                    <div class="brand-subtitle">Panel Login</div>
                 </div>
             </div>
 
             <div class="login-copy">
-                <span class="hero-chip">MCC Dashboard Access</span>
-                <h1>Sign in to your user dashboard</h1>
-                <p>Use your MCC username, email, or user name to access assigned reports and dashboard pages.</p>
+                <span class="hero-chip">Role Based Login</span>
+                <h1>Sign in</h1>
+                <p>If role is ADMIN, you will be redirected to admin panel. If role is ORG_ADMIN, you will be redirected to user dashboard.</p>
             </div>
 
             <?php if ($errorMessage !== ''): ?>
@@ -101,14 +102,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="bi bi-box-arrow-in-right me-1"></i> Login
                 </button>
             </form>
-
-            <div class="login-note">
-                After login, you will be taken to your dashboard and can open each report page from the sidebar.
-            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/script.js"></script>
+    <script src="user-dashboard/assets/js/script.js"></script>
 </body>
 </html>

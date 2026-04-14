@@ -4,7 +4,8 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/dashboard-data.php';
 require_once __DIR__ . '/includes/dashboard-layout.php';
 
-ud_require_auth('login.php');
+ud_require_auth('../login.php');
+ud_require_org_admin_dashboard('../index.php');
 
 $reportPageConfig = isset($reportPageConfig) && is_array($reportPageConfig) ? $reportPageConfig : [];
 $reportType = $reportPageConfig['report_type'] ?? 'Normal Report';

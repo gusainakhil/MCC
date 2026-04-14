@@ -8,7 +8,8 @@ require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/dashboard-data.php';
 require_once __DIR__ . '/includes/dashboard-layout.php';
 
-ud_require_auth('login.php');
+ud_require_auth('../login.php');
+ud_require_org_admin_dashboard('../index.php');
 
 function h($value)
 {

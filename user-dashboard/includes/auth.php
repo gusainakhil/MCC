@@ -10,6 +10,14 @@ if (!function_exists('ud_auth_user')) {
     }
 }
 
+if (!function_exists('ud_auth_role')) {
+    function ud_auth_role()
+    {
+        $user = ud_auth_user();
+        return $user ? strtoupper((string) ($user['role'] ?? '')) : '';
+    }
+}
+
 if (!function_exists('ud_is_authenticated')) {
     function ud_is_authenticated()
     {
@@ -18,7 +26,7 @@ if (!function_exists('ud_is_authenticated')) {
 }
 
 if (!function_exists('ud_require_auth')) {
-    function ud_require_auth($redirectTo = 'login.php')
+    function ud_require_auth($redirectTo = '../login.php')
     {
         if (!ud_is_authenticated()) {
             header('Location: ' . $redirectTo);
@@ -53,6 +61,43 @@ if (!function_exists('ud_auth_redirect_if_logged_in')) {
     {
         if (ud_is_authenticated()) {
             header('Location: ' . $redirectTo);
+            exit;
+        }
+    }
+}
+
+if (!function_exists('ud_role_home_path')) {
+    function ud_role_home_path($role, $userId = 0, $fromUserDashboard = false)
+    {
+        $role = strtoupper((string) $role);
+
+        if ($role === 'ORG_ADMIN') {
+            $base = $fromUserDashboard ? 'index.php' : 'user-dashboard/index.php';
+            return $base . '?user_id=' . (int) $userId;
+        }
+
+        return $fromUserDashboard ? '../index.php' : 'index.php';
+    }
+}
+
+if (!function_exists('ud_redirect_authenticated_user')) {
+    function ud_redirect_authenticated_user($fromUserDashboard = false)
+    {
+        $user = ud_auth_user();
+        if ($user) {
+            $target = ud_role_home_path($user['role'] ?? '', (int) ($user['user_id'] ?? 0), $fromUserDashboard);
+            header('Location: ' . $target);
+            exit;
+        }
+    }
+}
+
+if (!function_exists('ud_require_org_admin_dashboard')) {
+    function ud_require_org_admin_dashboard($fallback = '../index.php')
+    {
+        $role = ud_auth_role();
+        if ($role !== 'ORG_ADMIN') {
+            header('Location: ' . $fallback);
             exit;
         }
     }
