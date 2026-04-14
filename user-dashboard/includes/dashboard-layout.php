@@ -33,6 +33,7 @@ if (!function_exists('ud_sidebar_report_items')) {
                 'type' => $reportType,
                 'status' => (string) ($reportRow['status'] ?? 'Inactive'),
                 'weight' => (float) ($reportRow['weight_percent'] ?? 0),
+                'accent' => function_exists('ud_report_accent') ? ud_report_accent($reportType) : '#3c8dbc',
                 'url' => $pageMap[$reportType] ?? 'index.php',
             ];
         }
@@ -128,7 +129,7 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
                 <?php else: ?>
                     <div class="sidebar-report-list">
                         <?php foreach ($reportItems as $item): ?>
-                            <a class="sidebar-report-item" href="<?php echo ud_h($item['url']); ?>?user_id=<?php echo (int) $selectedUserId; ?>">
+                            <a class="sidebar-report-item" href="<?php echo ud_h($item['url']); ?>?user_id=<?php echo (int) $selectedUserId; ?>" style="--accent: <?php echo ud_h($item['accent']); ?>;">
                                 <div class="sidebar-report-item__title">
                                     <span><?php echo ud_h($item['name']); ?></span>
                                     <small><?php echo ud_h($item['type']); ?></small>
@@ -148,15 +149,6 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
                     <strong><?php echo ud_h($reportType); ?></strong>
                 </div>
             </div>
-
-            <nav class="sidebar-nav">
-                <?php foreach ($reportPageMap as $label => $url): ?>
-                    <a class="sidebar-link <?php echo $reportType === $label ? 'active' : ''; ?>" href="<?php echo ud_h($url); ?>?user_id=<?php echo (int) $selectedUserId; ?>">
-                        <i class="bi bi-journal-text"></i>
-                        <span><?php echo ud_h($label); ?></span>
-                    </a>
-                <?php endforeach; ?>
-            </nav>
         </aside>
         <?php
     }

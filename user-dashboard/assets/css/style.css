@@ -327,16 +327,39 @@ body::before {
 }
 
 .sidebar-report-item {
+    position: relative;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 0.7rem;
-    padding: 0.75rem 0.8rem;
-    border-radius: 16px;
+    padding: 0.95rem 0.9rem;
+    border-radius: 22px;
     text-decoration: none;
-    background: rgba(60, 141, 188, 0.04);
-    border: 1px solid rgba(60, 141, 188, 0.08);
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(60, 141, 188, 0.10);
     color: var(--ink);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebar-report-item::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: var(--accent, var(--brand));
+}
+
+.sidebar-report-item:hover {
+    transform: translateY(-2px);
+}
+
+.sidebar-report-item__title span {
+    display: block;
+    font-size: 0.96rem;
+    font-weight: 800;
+    margin-bottom: 0.15rem;
 }
 
 .sidebar-report-item__title {
@@ -361,6 +384,11 @@ body::before {
     border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 800;
+}
+
+.sidebar-report-item__badge.text-bg-success,
+.sidebar-report-item__badge.text-bg-secondary {
+    box-shadow: none;
 }
 
 .sidebar-footer-card {
