@@ -56,7 +56,7 @@ $layoutContext = [
 	'pageDescription' => 'Static score card preview with top date filter.',
 	'pageIcon' => 'bi-journal-text',
 	'pageAccent' => '#3c8dbc',
-	'activePage' => 'normal-report',
+	'activePage' => 'dashboard',
 ];
 
 $coachPositionCount = 24;
@@ -115,7 +115,7 @@ $coachPositionCount = 24;
 					</div>
 				</div>
 
-				<div class="panel-card reveal mt-3">
+				<div id="normalReportPrintCard" class="panel-card reveal mt-3">
 					<div class="panel-card__body">
 						<div class="normal-score-sheet">
 							<div class="normal-score-sheet__head">
