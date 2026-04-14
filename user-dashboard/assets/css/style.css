@@ -391,6 +391,36 @@ body::before {
     box-shadow: none;
 }
 
+@media print {
+    .sidebar-report-item {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        border-radius: 0;
+        transform: none !important;
+        margin-bottom: 0.3rem;
+    }
+
+    .sidebar-report-item::before {
+        display: none;
+    }
+
+    .sidebar-report-item__title small {
+        display: none;
+    }
+
+    .sidebar-report-item__badge {
+        display: none;
+    }
+
+    .sidebar-report-item__title span {
+        font-size: 0.9rem;
+        font-weight: 400;
+        margin-bottom: 0;
+    }
+}
+
 .sidebar-footer-card {
     display: grid;
     gap: 0.65rem;
