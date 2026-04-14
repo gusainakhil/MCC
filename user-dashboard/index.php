@@ -155,7 +155,6 @@ if ($selectedUserId > 0) {
             r.report_name,
             r.report_type,
             r.weight_percent,
-            r.description,
             r.status,
             COUNT(p.parameter_id) AS parameter_count,
             SUM(CASE WHEN p.status = \'Active\' THEN 1 ELSE 0 END) AS active_parameter_count,
@@ -170,7 +169,6 @@ if ($selectedUserId > 0) {
             r.report_name,
             r.report_type,
             r.weight_percent,
-            r.description,
             r.status
         ORDER BY FIELD(r.report_type, \'Normal Report\', \'Intensive Report\', \'Chemical Report\', \'Machine Report\', \'Attendance Report\'), r.report_name ASC
     ';
