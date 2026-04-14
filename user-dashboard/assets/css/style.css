@@ -327,97 +327,47 @@ body::before {
 }
 
 .sidebar-report-item {
-    position: relative;
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.7rem;
-    padding: 0.95rem 0.9rem;
-    border-radius: 22px;
+    gap: 0.45rem;
+    padding: 0.35rem 0;
     text-decoration: none;
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid rgba(60, 141, 188, 0.10);
     color: var(--ink);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.sidebar-report-item::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: var(--accent, var(--brand));
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    transition: color 0.2s ease, opacity 0.2s ease;
 }
 
 .sidebar-report-item:hover {
-    transform: translateY(-2px);
+    color: var(--brand-dark);
+    opacity: 0.92;
 }
 
 .sidebar-report-item__title span {
     display: block;
-    font-size: 0.96rem;
-    font-weight: 800;
-    margin-bottom: 0.15rem;
+    font-size: 0.94rem;
+    font-weight: 700;
+    margin-bottom: 0;
 }
 
 .sidebar-report-item__title {
     min-width: 0;
 }
 
-.sidebar-report-item__title span {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 700;
-}
-
 .sidebar-report-item__title small {
-    display: block;
-    color: var(--muted);
-    font-size: 0.75rem;
+    display: none;
 }
 
 .sidebar-report-item__badge {
-    flex: 0 0 auto;
-    padding: 0.3rem 0.55rem;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 800;
-}
-
-.sidebar-report-item__badge.text-bg-success,
-.sidebar-report-item__badge.text-bg-secondary {
-    box-shadow: none;
+    display: none;
 }
 
 @media print {
     .sidebar-report-item {
-        background: transparent;
-        border: none;
-        box-shadow: none;
         padding: 0;
-        border-radius: 0;
-        transform: none !important;
-        margin-bottom: 0.3rem;
-    }
-
-    .sidebar-report-item::before {
-        display: none;
-    }
-
-    .sidebar-report-item__title small {
-        display: none;
-    }
-
-    .sidebar-report-item__badge {
-        display: none;
-    }
-
-    .sidebar-report-item__title span {
-        font-size: 0.9rem;
-        font-weight: 400;
-        margin-bottom: 0;
+        margin-bottom: 0.25rem;
+        color: #000;
     }
 }
 
