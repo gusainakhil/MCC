@@ -1,6 +1,68 @@
 document.addEventListener('DOMContentLoaded', function () {
     var revealItems = document.querySelectorAll('.reveal');
     var countItems = document.querySelectorAll('[data-count]');
+    var body = document.body;
+    var sidebar = document.getElementById('dashboardSidebar');
+    var sidebarToggleButtons = document.querySelectorAll('[data-sidebar-toggle]');
+    var sidebarCloseButtons = document.querySelectorAll('[data-sidebar-close]');
+
+    var isMobileViewport = function () {
+        return window.matchMedia('(max-width: 1199.98px)').matches;
+    };
+
+    var syncToggleState = function () {
+        var expanded = isMobileViewport() ? body.classList.contains('sidebar-open') : !body.classList.contains('sidebar-collapsed');
+        sidebarToggleButtons.forEach(function (button) {
+            button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
+    };
+
+    var closeSidebar = function () {
+        body.classList.remove('sidebar-open');
+        syncToggleState();
+    };
+
+    if (sidebar && sidebarToggleButtons.length > 0) {
+        sidebarToggleButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (isMobileViewport()) {
+                    body.classList.toggle('sidebar-open');
+                } else {
+                    body.classList.toggle('sidebar-collapsed');
+                }
+                syncToggleState();
+            });
+        });
+
+        sidebarCloseButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                closeSidebar();
+            });
+        });
+
+        sidebar.querySelectorAll('a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                if (isMobileViewport()) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        window.addEventListener('resize', function () {
+            if (!isMobileViewport()) {
+                body.classList.remove('sidebar-open');
+            }
+            syncToggleState();
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && body.classList.contains('sidebar-open')) {
+                closeSidebar();
+            }
+        });
+
+        syncToggleState();
+    }
 
     if ('IntersectionObserver' in window) {
         var revealObserver = new IntersectionObserver(function (entries, observer) {

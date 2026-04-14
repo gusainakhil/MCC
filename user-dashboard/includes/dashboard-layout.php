@@ -67,9 +67,10 @@ if (!function_exists('ud_render_dashboard_header')) {
             </div>
             <div class="topbar-actions header-actions">
                 <div class="action-buttons">
-                    <a href="../organisation_pdf.php?user_id=<?php echo (int) $selectedUserId; ?>" class="btn btn-outline-primary btn-soft">
-                        <i class="bi bi-printer me-1"></i> Profile PDF
-                    </a>
+                    <button type="button" class="btn btn-outline-primary btn-soft sidebar-toggle-btn" data-sidebar-toggle aria-label="Toggle sidebar" aria-expanded="true" aria-controls="dashboardSidebar">
+                        <i class="bi bi-grid-3x3-gap-fill me-1"></i> Menu
+                    </button>
+                 
                     <a href="../logout.php" class="btn btn-outline-danger btn-soft">
                         <i class="bi bi-box-arrow-right me-1"></i> Logout
                     </a>
@@ -95,7 +96,10 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
         $reportPageMap = ud_report_page_map();
         $activePage = $context['activePage'] ?? 'dashboard';
         ?>
-        <aside class="dashboard-sidebar reveal">
+        <aside id="dashboardSidebar" class="dashboard-sidebar reveal" aria-label="Sidebar navigation">
+            <button type="button" class="sidebar-close-btn" data-sidebar-close aria-label="Close sidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
             <div class="sidebar-brand">
                 <div class="brand-mark">MCC</div>
                 <div>
@@ -146,6 +150,7 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
                 </div>
             </div>
         </aside>
+        <button type="button" class="sidebar-backdrop" data-sidebar-close aria-label="Close sidebar"></button>
         <?php
     }
 }

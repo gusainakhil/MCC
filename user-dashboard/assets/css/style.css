@@ -157,6 +157,25 @@ body::before {
     box-shadow: var(--shadow);
     backdrop-filter: blur(18px);
     padding: 1rem;
+    transition: width 0.25s ease, flex-basis 0.25s ease, padding 0.25s ease, border-width 0.25s ease, opacity 0.2s ease, transform 0.25s ease;
+}
+
+.sidebar-backdrop {
+    display: none;
+}
+
+.sidebar-close-btn {
+    display: none;
+}
+
+body.sidebar-collapsed .dashboard-sidebar {
+    width: 0;
+    flex-basis: 0;
+    padding: 0;
+    border-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 .dashboard-main {
@@ -553,6 +572,10 @@ body::before {
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
+}
+
+.sidebar-toggle-btn {
+    min-width: 7.4rem;
 }
 
 .btn-brand,
@@ -981,15 +1004,62 @@ body::before {
 
 @media (max-width: 1199.98px) {
     .dashboard-app {
-        flex-direction: column;
+        display: block;
     }
 
     .dashboard-sidebar {
-        width: 100%;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: min(88vw, 340px);
         flex-basis: auto;
-        position: relative;
-        top: auto;
-        height: auto;
+        height: 100vh;
+        border-radius: 0 22px 22px 0;
+        border-left: 0;
+        z-index: 1060;
+        transform: translateX(-110%);
+        opacity: 1;
+        pointer-events: none;
+    }
+
+    body.sidebar-open .dashboard-sidebar {
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+
+    .sidebar-close-btn {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.7rem;
+        width: 2.2rem;
+        height: 2.2rem;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(60, 141, 188, 0.12);
+        color: var(--brand-dark);
+        display: inline-grid;
+        place-items: center;
+    }
+
+    .sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(18, 50, 67, 0.36);
+        border: 0;
+        z-index: 1055;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+
+    body.sidebar-open .sidebar-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .dashboard-main {
+        width: 100%;
     }
 
     .hero-card__content {
@@ -1040,6 +1110,10 @@ body::before {
 
     .action-buttons .btn {
         flex: 1 1 0;
+    }
+
+    .sidebar-toggle-btn {
+        flex: 1 1 100%;
     }
 
     .hero-meta {
