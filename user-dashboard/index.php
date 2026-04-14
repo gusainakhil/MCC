@@ -273,18 +273,6 @@ function reportStatusBadge($status)
             <?php if (!$userProfile): ?>
                 <div class="alert alert-warning border-0 shadow-sm reveal">No user data found. Please create a valid user first.</div>
             <?php else: ?>
-                <div class="hero-card reveal">
-                    <div class="hero-card__content">
-                        <div class="hero-copy">
-                            <span class="hero-chip">Color theme: #3c8dbc</span>
-                            <h2><?php echo h($userProfile['designation'] ?: 'Railway User Dashboard'); ?></h2>
-                            <p>
-                                <?php echo h($stationLabel); ?>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="row g-3 g-xl-4 mt-1">
                     <div class="col-xl-8">
                         <div class="panel-card reveal" id="assigned-reports">
