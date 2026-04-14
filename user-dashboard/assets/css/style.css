@@ -153,33 +153,6 @@ body::before {
     overflow: auto;
     border-radius: 28px;
     border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.88);
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(18px);
-    padding: 1rem;
-}
-
-.dashboard-main {
-    flex: 1;
-    min-width: 0;
-}
-
-.dashboard-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1.15rem 1.35rem;
-    margin-bottom: 1rem;
-    border: 1px solid var(--line);
-    border-radius: 28px;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.72));
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(18px);
-}
-
-.header-copy {
-    min-width: 0;
 }
 
 .header-meta {
@@ -315,10 +288,24 @@ body::before {
 }
 
 .sidebar-section__title {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.05rem;
     font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 0.8rem;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+    margin-bottom: 0.85rem;
+}
+
+.sidebar-section__title i {
+    color: var(--brand);
+    font-size: 0.95rem;
+}
+
+.sidebar-section__title--reports {
+    margin-bottom: 0.9rem;
 }
 
 .sidebar-report-list {
