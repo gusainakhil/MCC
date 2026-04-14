@@ -1104,6 +1104,14 @@ body::before {
     font-size: 0.9rem;
 }
 
+.normal-score-sheet__footer-note {
+    margin-top: 0.9rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(16, 42, 60, 0.16);
+    font-weight: 700;
+    text-align: center;
+}
+
 @keyframes drift {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
     50% { transform: translate3d(18px, 16px, 0) scale(1.05); }
@@ -1270,5 +1278,9 @@ body::before {
     .normal-score-sign {
         flex-direction: column;
         gap: 0.35rem;
+    }
+
+    .normal-score-sheet__footer-note {
+        text-align: left;
     }
 }
