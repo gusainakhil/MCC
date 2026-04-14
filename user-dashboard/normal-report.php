@@ -129,10 +129,7 @@ $layoutContext = [
 								<span>Annexure A-1</span>
 								<h3>Score card for Normal cleaning</h3>
 							</div>
-								<div class="normal-score-sheet__meta">
-									<div>Date: .......................</div>
-									<div>Train No: ............................</div>
-								</div>
+						
 
 							<div class="normal-score-sheet__meta">
 								<div>Agreement No &amp; date: ..................................</div>
@@ -227,6 +224,10 @@ $layoutContext = [
 								<span>Signature of Contractor's Supervisor</span>
 								<span>Signature of Auth. Rep. of Sr.DME/CDO</span>
 							</div>
+                            		<div class="normal-score-sheet__meta">
+									<div>Date: .......................</div>
+									<div>Train No: ............................</div>
+								</div>
 
 							<div class="normal-score-sheet__footer-note">Payment cum Penalty Schedule for normal coach cleaning:</div>
 						</div>
