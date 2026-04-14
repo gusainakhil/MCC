@@ -89,9 +89,7 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
         $selectedUserName = (string) ($context['selectedUserName'] ?? 'User');
         $stationLabel = (string) ($context['stationLabel'] ?? '-');
         $contractLabel = (string) ($context['contractLabel'] ?? '-');
-        $reports = $context['reports'] ?? [];
         $reportType = (string) ($context['reportType'] ?? 'Dashboard');
-        $reportItems = ud_sidebar_report_items($reports);
         $reportPageMap = ud_report_page_map();
         $activePage = $context['activePage'] ?? 'dashboard';
         ?>
@@ -127,32 +125,7 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
                 <?php endforeach; ?>
             </nav>
 
-            <div class="sidebar-section">
-                <div class="sidebar-section__title">Assigned Reports</div>
-                <?php if (count($reportItems) === 0): ?>
-                    <div class="sidebar-empty">No reports assigned yet.</div>
-                <?php else: ?>
-                    <div class="sidebar-report-list">
-                        <?php foreach ($reportItems as $item): ?>
-                            <a class="sidebar-report-item" href="<?php echo ud_h($item['url']); ?>">
-                                <div class="sidebar-report-item__title">
-                                    <span><?php echo ud_h($item['name']); ?></span>
-                                    <small><?php echo ud_h($item['type']); ?></small>
-                                </div>
-                                <div class="sidebar-report-item__badge <?php echo ud_report_status_badge($item['status']); ?>">
-                                    <?php echo ud_h(number_format((float) $item['weight'], 0)); ?>%
-                                </div>
-                            </a>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
-
             <div class="sidebar-footer-card">
-                <div>
-                    <span>Quick stats</span>
-                    <strong><?php echo count($reportItems); ?> reports</strong>
-                </div>
                 <div>
                     <span>Mode</span>
                     <strong><?php echo ud_h($reportType); ?></strong>
