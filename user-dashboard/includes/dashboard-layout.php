@@ -87,7 +87,6 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
     function ud_render_dashboard_sidebar(array $context)
     {
         $selectedUserId = (int) ($context['selectedUserId'] ?? 0);
-        $selectedUserName = (string) ($context['selectedUserName'] ?? 'User');
         $stationLabel = (string) ($context['stationLabel'] ?? '-');
         $contractLabel = (string) ($context['contractLabel'] ?? '-');
         $reports = $context['reports'] ?? [];
@@ -105,12 +104,6 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
                 </div>
             </div>
 
-            <div class="sidebar-user-card">
-                <div class="sidebar-user-name"><?php echo ud_h($selectedUserName); ?></div>
-                <div class="sidebar-user-meta"><?php echo ud_h($stationLabel); ?></div>
-                <div class="sidebar-user-tag">Contract: <?php echo ud_h($contractLabel); ?></div>
-            </div>
-
             <nav class="sidebar-nav">
                 <a class="sidebar-link <?php echo $activePage === 'dashboard' ? 'active' : ''; ?>" href="index.php?user_id=<?php echo (int) $selectedUserId; ?>">
                     <i class="bi bi-grid-1x2"></i>
@@ -123,7 +116,10 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
             </nav>
 
             <div class="sidebar-section">
-                <div class="sidebar-section__title">Assigned Reports</div>
+                <div class="sidebar-section__title sidebar-section__title--reports">
+                    <i class="bi bi-grid-1x2 me-2"></i>
+                    <span>Assigned Reports</span>
+                </div>
                 <?php if (count($reportItems) === 0): ?>
                     <div class="sidebar-empty">No reports assigned yet.</div>
                 <?php else: ?>
