@@ -4,6 +4,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 require_once __DIR__ . '/../connection.php';
+require_once __DIR__ . '/includes/dashboard-data.php';
+require_once __DIR__ . '/includes/dashboard-layout.php';
 
 function h($value)
 {
@@ -291,6 +293,8 @@ if (trim((string) $dashboardUserName) === '') {
     $dashboardUserName = $selectedUser['display_name'] ?? 'User';
 }
 
+$selectedUserName = $dashboardUserName;
+
 $stationLabel = '-';
 if ($userProfile) {
     $stationParts = array_filter([
@@ -310,6 +314,21 @@ if ($contract) {
         $contractLabel = 'Contract available';
     }
 }
+
+$layoutContext = [
+    'selectedUserId' => $selectedUserId,
+    'selectedUserName' => $selectedUserName,
+    'stationLabel' => $stationLabel,
+    'contractLabel' => $contractLabel,
+    'users' => $users,
+    'reports' => $reports,
+    'reportType' => 'Dashboard',
+    'pageTitle' => 'User Dashboard',
+    'pageDescription' => 'Assigned reports, parameters, and recent activity in one compact view.',
+    'pageIcon' => 'bi-speedometer2',
+    'pageAccent' => '#3c8dbc',
+    'activePage' => 'dashboard',
+];
 
 function formatDateTimeValue($value)
 {
@@ -340,41 +359,10 @@ function reportStatusBadge($status)
     <link href="assets/css/style.css" rel="stylesheet">
 </head>
 <body>
-    <div class="dashboard-shell">
-        <div class="dashboard-glow dashboard-glow-left"></div>
-        <div class="dashboard-glow dashboard-glow-right"></div>
-
-        <div class="container-fluid px-3 px-lg-4 py-3 py-lg-4">
-            <div class="dashboard-topbar reveal">
-                <div>
-                    <div class="eyebrow">MCC Railway User Panel</div>
-                    <h1 class="dashboard-title mb-2">Welcome, <?php echo h($dashboardUserName); ?></h1>
-                    <p class="dashboard-subtitle mb-0">Assigned reports, parameters, and recent activity in one compact view.</p>
-                </div>
-                <div class="topbar-actions">
-                    <form method="get" class="user-switcher">
-                        <label for="user_id" class="form-label mb-1">Switch user</label>
-                        <select name="user_id" id="user_id" class="form-select" onchange="this.form.submit()">
-                            <?php foreach ($users as $userRow): ?>
-                                <option value="<?php echo (int) $userRow['user_id']; ?>" <?php echo (int) $userRow['user_id'] === $selectedUserId ? 'selected' : ''; ?>>
-                                    <?php echo h($userRow['display_name']); ?>
-                                    <?php if (!empty($userRow['station_name'])): ?>
-                                        - <?php echo h($userRow['station_name']); ?>
-                                    <?php endif; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </form>
-                    <div class="action-buttons">
-                        <a href="../organisation_pdf.php?user_id=<?php echo (int) $selectedUserId; ?>" class="btn btn-outline-primary btn-soft">
-                            <i class="bi bi-printer me-1"></i> Profile PDF
-                        </a>
-                        <a href="../index.php" class="btn btn-primary btn-brand">
-                            <i class="bi bi-speedometer2 me-1"></i> Admin Home
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <div class="dashboard-app">
+        <?php ud_render_dashboard_sidebar($layoutContext); ?>
+        <div class="dashboard-main">
+            <?php ud_render_dashboard_header($layoutContext); ?>
 
             <?php if (!$userProfile): ?>
                 <div class="alert alert-warning border-0 shadow-sm reveal">No user data found. Please create a valid user first.</div>
