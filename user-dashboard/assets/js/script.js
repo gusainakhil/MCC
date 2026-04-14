@@ -22,15 +22,24 @@ document.addEventListener('DOMContentLoaded', function () {
         syncToggleState();
     };
 
+    var openSidebar = function () {
+        body.classList.add('sidebar-open');
+        syncToggleState();
+    };
+
     if (sidebar && sidebarToggleButtons.length > 0) {
         sidebarToggleButtons.forEach(function (button) {
             button.addEventListener('click', function () {
                 if (isMobileViewport()) {
-                    body.classList.toggle('sidebar-open');
+                    if (body.classList.contains('sidebar-open')) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
                 } else {
                     body.classList.toggle('sidebar-collapsed');
+                    syncToggleState();
                 }
-                syncToggleState();
             });
         });
 
@@ -59,6 +68,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape' && body.classList.contains('sidebar-open')) {
+                closeSidebar();
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!isMobileViewport() || !body.classList.contains('sidebar-open')) {
+                return;
+            }
+
+            if (event.target.closest('[data-sidebar-close]')) {
+                closeSidebar();
+                return;
+            }
+
+            if (!event.target.closest('#dashboardSidebar') && !event.target.closest('[data-sidebar-toggle]')) {
                 closeSidebar();
             }
         });

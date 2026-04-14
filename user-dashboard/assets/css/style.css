@@ -168,6 +168,11 @@ body::before {
     display: none;
 }
 
+.sidebar-toggle-btn {
+    position: relative;
+    z-index: 1070;
+}
+
 @media (min-width: 1200px) {
     body.sidebar-collapsed .dashboard-sidebar {
         width: 0;
@@ -1050,6 +1055,7 @@ body::before {
         color: var(--brand-dark);
         display: inline-grid;
         place-items: center;
+        z-index: 2;
     }
 
     .sidebar-backdrop {
@@ -1062,6 +1068,10 @@ body::before {
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.2s ease;
+    }
+
+    .sidebar-toggle-btn {
+        z-index: 1065;
     }
 
     body.sidebar-open .sidebar-backdrop {
