@@ -59,7 +59,7 @@ $layoutContext = [
     'activePage' => 'dashboard',
 ];
 
-$coachPositionCount = 11;
+$coachPositionCount = 24;
 ?>
 <!DOCTYPE html>
 <html lang="en">
