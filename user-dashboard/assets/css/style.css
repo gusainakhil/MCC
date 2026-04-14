@@ -1013,6 +1013,97 @@ body::before {
     background: rgba(60, 141, 188, 0.03);
 }
 
+.report-filter-panel .form-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+}
+
+.report-filter-panel .form-control,
+.report-filter-panel .form-select {
+    border-radius: 12px;
+    border-color: rgba(60, 141, 188, 0.2);
+    box-shadow: none;
+}
+
+.normal-score-sheet {
+    border: 1px solid rgba(16, 42, 60, 0.2);
+    border-radius: 14px;
+    padding: 1rem;
+    background: #fff;
+}
+
+.normal-score-sheet__head {
+    position: relative;
+    margin-bottom: 0.7rem;
+    text-align: center;
+}
+
+.normal-score-sheet__head span {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-weight: 700;
+}
+
+.normal-score-sheet__head h3 {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.normal-score-sheet__meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1.2rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.92rem;
+}
+
+.normal-score-table {
+    table-layout: fixed;
+    font-size: 0.88rem;
+}
+
+.normal-score-table th,
+.normal-score-table td {
+    border-color: rgba(16, 42, 60, 0.45);
+    vertical-align: top;
+    padding: 0.42rem;
+}
+
+.normal-score-table th:first-child,
+.normal-score-table td:first-child {
+    width: 46px;
+}
+
+.normal-score-table th:nth-child(2),
+.normal-score-table td:nth-child(2) {
+    width: 38%;
+}
+
+.normal-score-table .section-row td {
+    font-weight: 700;
+    background: rgba(60, 141, 188, 0.06);
+}
+
+.normal-score-notes {
+    margin-top: 0.85rem;
+    padding-left: 1.25rem;
+    font-size: 0.9rem;
+}
+
+.normal-score-sign {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
 @keyframes drift {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
     50% { transform: translate3d(18px, 16px, 0) scale(1.05); }
@@ -1156,5 +1247,28 @@ body::before {
     .mini-stack strong {
         text-align: left;
         max-width: 100%;
+    }
+
+    .normal-score-sheet {
+        padding: 0.75rem;
+    }
+
+    .normal-score-sheet__head h3 {
+        font-size: 1.05rem;
+        padding-top: 1.3rem;
+    }
+
+    .normal-score-sheet__head span {
+        font-size: 0.8rem;
+    }
+
+    .normal-score-sheet__meta {
+        grid-template-columns: 1fr;
+        font-size: 0.86rem;
+    }
+
+    .normal-score-sign {
+        flex-direction: column;
+        gap: 0.35rem;
     }
 }
