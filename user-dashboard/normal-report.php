@@ -58,6 +58,8 @@ $layoutContext = [
 	'pageAccent' => '#3c8dbc',
 	'activePage' => 'normal-report',
 ];
+
+$coachPositionCount = 24;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -141,63 +143,74 @@ $layoutContext = [
 										<tr>
 											<th>Sr</th>
 											<th>Coach position</th>
-											<th>1</th>
-											<th>2</th>
-											<th>3</th>
-											<th>4</th>
-											<th>5</th>
-											<th>6</th>
-											<th>7</th>
-											<th>8</th>
-											<th>9</th>
-											<th>10</th>
-											<th>11</th>
-											<th>...</th>
+											<?php for ($coachPosition = 1; $coachPosition <= $coachPositionCount; $coachPosition++): ?>
+												<th><?php echo (int) $coachPosition; ?></th>
+											<?php endfor; ?>
 										</tr>
 									</thead>
 									<tbody>
 										<tr>
 											<td></td>
 											<td>Coach No</td>
-											<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+											<?php for ($coachPosition = 1; $coachPosition <= $coachPositionCount; $coachPosition++): ?>
+												<td></td>
+											<?php endfor; ?>
 										</tr>
 										<tr class="section-row">
 											<td>(A)</td>
-											<td colspan="13">Coach Interior</td>
+											<td colspan="<?php echo (int) (1 + $coachPositionCount); ?>">Coach Interior</td>
 										</tr>
 										<tr>
 											<td>1</td>
 											<td>Cleaning and wiping of toilet area and fittings including wash basins, mirrors, mugs in AC coaches etc.</td>
-											<td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+											<td>8</td>
+											<?php for ($coachPosition = 2; $coachPosition <= $coachPositionCount; $coachPosition++): ?>
+												<td></td>
+											<?php endfor; ?>
 										</tr>
 										<tr>
 											<td>2</td>
 											<td>Interior cleaning doorways, gangways, vestibules, window glass, window shutter etc.</td>
-											<td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+											<td>8</td>
+											<?php for ($coachPosition = 2; $coachPosition <= $coachPositionCount; $coachPosition++): ?>
+												<td></td>
+											<?php endfor; ?>
 										</tr>
 										<tr>
 											<td>3</td>
 											<td>Cleaning and wiping of all berths, panels, rexene and amenity fittings.</td>
-											<td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+											<td>8</td>
+											<?php for ($coachPosition = 2; $coachPosition <= $coachPositionCount; $coachPosition++): ?>
+												<td></td>
+											<?php endfor; ?>
 										</tr>
 										<tr>
 											<td>4</td>
 											<td>Floor including area under seats and berths etc.</td>
-											<td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+											<td>8</td>
+											<?php for ($coachPosition = 2; $coachPosition <= $coachPositionCount; $coachPosition++): ?>
+												<td></td>
+											<?php endfor; ?>
 										</tr>
 										<tr class="section-row">
 											<td>(B)</td>
 											<td>Coach Exterior</td>
-											<td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+											<td>8</td>
+											<?php for ($coachPosition = 2; $coachPosition <= $coachPositionCount; $coachPosition++): ?>
+												<td></td>
+											<?php endfor; ?>
 										</tr>
 										<tr>
 											<td></td>
 											<td>Exterior cleaning and washing including end panel</td>
-											<td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+											<td>8</td>
+											<?php for ($coachPosition = 2; $coachPosition <= $coachPositionCount; $coachPosition++): ?>
+												<td></td>
+											<?php endfor; ?>
 										</tr>
 										<tr class="section-row">
 											<td>(C)</td>
-											<td colspan="13">Watering (Please mention Yes/No)</td>
+											<td colspan="<?php echo (int) (1 + $coachPositionCount); ?>">Watering (Please mention Yes/No)</td>
 										</tr>
 									</tbody>
 								</table>

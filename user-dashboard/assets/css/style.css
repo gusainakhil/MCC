@@ -1112,6 +1112,63 @@ body::before {
     text-align: center;
 }
 
+@media print {
+    @page {
+        size: landscape;
+        margin: 10mm;
+    }
+
+    body {
+        background: #fff !important;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .normal-score-sheet,
+    .normal-score-sheet * {
+        visibility: visible !important;
+    }
+
+    .normal-score-sheet {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+    }
+
+    .normal-score-sheet__meta {
+        gap: 0.25rem 0.8rem;
+        font-size: 0.72rem;
+    }
+
+    .normal-score-table {
+        font-size: 0.58rem;
+    }
+
+    .normal-score-table th,
+    .normal-score-table td {
+        padding: 0.14rem 0.18rem;
+        border-color: #000 !important;
+    }
+
+    .normal-score-table th:nth-child(2),
+    .normal-score-table td:nth-child(2) {
+        width: 30%;
+    }
+
+    .normal-score-notes,
+    .normal-score-sign,
+    .normal-score-sheet__footer-note {
+        font-size: 0.68rem;
+    }
+}
+
 @keyframes drift {
     0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
     50% { transform: translate3d(18px, 16px, 0) scale(1.05); }
