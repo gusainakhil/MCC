@@ -119,12 +119,6 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
                     <i class="bi bi-box-arrow-right"></i>
                     <span>Logout</span>
                 </a>
-                <?php foreach ($reportPageMap as $label => $url): ?>
-                    <a class="sidebar-link <?php echo $reportType === $label ? 'active' : ''; ?>" href="<?php echo ud_h($url); ?>?user_id=<?php echo (int) $selectedUserId; ?>">
-                        <i class="bi bi-journal-text"></i>
-                        <span><?php echo ud_h($label); ?></span>
-                    </a>
-                <?php endforeach; ?>
             </nav>
 
             <div class="sidebar-section">
@@ -150,14 +144,19 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
 
             <div class="sidebar-footer-card">
                 <div>
-                    <span>Quick stats</span>
-                    <strong><?php echo count($reportItems); ?> reports</strong>
-                </div>
-                <div>
                     <span>Mode</span>
                     <strong><?php echo ud_h($reportType); ?></strong>
                 </div>
             </div>
+
+            <nav class="sidebar-nav">
+                <?php foreach ($reportPageMap as $label => $url): ?>
+                    <a class="sidebar-link <?php echo $reportType === $label ? 'active' : ''; ?>" href="<?php echo ud_h($url); ?>?user_id=<?php echo (int) $selectedUserId; ?>">
+                        <i class="bi bi-journal-text"></i>
+                        <span><?php echo ud_h($label); ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </nav>
         </aside>
         <?php
     }
