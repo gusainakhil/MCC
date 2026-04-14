@@ -103,6 +103,31 @@ if (!function_exists('ud_require_org_admin_dashboard')) {
     }
 }
 
+if (!function_exists('ud_require_admin_panel')) {
+    function ud_require_admin_panel($loginRedirect = 'login.php', $orgAdminRedirect = 'user-dashboard/index.php')
+    {
+        if (!ud_is_authenticated()) {
+            header('Location: ' . $loginRedirect);
+            exit;
+        }
+
+        $role = ud_auth_role();
+        if ($role === 'ADMIN') {
+            return;
+        }
+
+        if ($role === 'ORG_ADMIN') {
+            $target = ud_role_home_path($role, ud_authenticated_user_id(), false);
+            header('Location: ' . $target);
+            exit;
+        }
+
+        ud_logout_user();
+        header('Location: ' . $loginRedirect);
+        exit;
+    }
+}
+
 if (!function_exists('ud_authenticated_user_id')) {
     function ud_authenticated_user_id()
     {

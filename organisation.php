@@ -2,6 +2,9 @@
 if (!isset($conn)) {
     include 'connection.php';
 }
+require_once __DIR__ . '/user-dashboard/includes/auth.php';
+
+ud_require_admin_panel('login.php', 'user-dashboard/index.php');
 
 $alertMessage = '';
 $alertType = 'success';
