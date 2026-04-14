@@ -27,7 +27,7 @@
                
             </ul>
             <div class="sidebar-footer">
-                <a href="#" class="btn btn-sm btn-outline-danger w-100">
+                <a href="logout.php" class="btn btn-sm btn-outline-danger w-100">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </a>
             </div>
