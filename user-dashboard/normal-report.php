@@ -8,7 +8,7 @@ ud_require_auth('../login.php');
 ud_require_org_admin_dashboard('../index.php');
 
 $selectedUserId = ud_authenticated_user_id();
-$context = ud_load_dashboard_context($conn, $selectedUserId, 'Normal Report');
+$context = ud_load_dashboard_context($conn, $selectedUserId);
 extract($context, EXTR_OVERWRITE);
 
 $selectedUserName = 'User';
@@ -107,7 +107,7 @@ $coachPositionCount = 24;
 							<div class="col-12 col-md-6 col-xl-3 d-flex gap-2 justify-content-end">
 								<button type="button" class="btn btn-soft">Reset</button>
 								<button type="button" class="btn btn-brand">Apply Filter</button>
-								<button type="button" class="btn btn-outline-primary btn-soft" onclick="window.print();">
+								<button type="button" class="btn btn-outline-primary btn-soft" onclick="udPrintNormalReportCard();">
 									<i class="bi bi-printer me-1"></i> Print
 								</button>
 							</div>
@@ -237,6 +237,43 @@ $coachPositionCount = 24;
 		</div>
 	</div>
 
+	<script>
+		function udPrintNormalReportCard() {
+			var printCard = document.getElementById('normalReportPrintCard');
+			if (!printCard) {
+				window.print();
+				return;
+			}
+
+			var printWindow = window.open('', '_blank', 'width=1200,height=900');
+			if (!printWindow) {
+				window.print();
+				return;
+			}
+
+			var styleTags = Array.prototype.slice.call(document.querySelectorAll('link[rel="stylesheet"], style'))
+				.map(function (node) { return node.outerHTML; })
+				.join('');
+
+			printWindow.document.open();
+			printWindow.document.write(
+				'<!DOCTYPE html>' +
+				'<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Normal Report Print</title>' +
+				styleTags +
+				'<style>body{margin:0;padding:10mm;background:#fff;}#normalReportPrintCard{display:block!important;visibility:visible!important;opacity:1!important;transform:none!important;}</style>' +
+				'</head><body>' +
+				printCard.outerHTML +
+				'</body></html>'
+			);
+			printWindow.document.close();
+
+			printWindow.onload = function () {
+				printWindow.focus();
+				printWindow.print();
+				printWindow.close();
+			};
+		}
+	</script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="assets/js/script.js"></script>
 </body>
