@@ -45,7 +45,6 @@ if (!function_exists('ud_render_dashboard_header')) {
     function ud_render_dashboard_header(array $context)
     {
         $selectedUserId = (int) ($context['selectedUserId'] ?? 0);
-        $users = $context['users'] ?? [];
         $title = (string) ($context['pageTitle'] ?? 'Dashboard');
         $subtitle = (string) ($context['pageDescription'] ?? '');
         $icon = (string) ($context['pageIcon'] ?? 'bi-grid-1x2');
@@ -66,19 +65,6 @@ if (!function_exists('ud_render_dashboard_header')) {
                 </div>
             </div>
             <div class="topbar-actions header-actions">
-                <form method="get" class="user-switcher">
-                    <label for="user_id" class="form-label mb-1">Switch user</label>
-                    <select name="user_id" id="user_id" class="form-select" onchange="this.form.submit()">
-                        <?php foreach ($users as $userRow): ?>
-                            <option value="<?php echo (int) $userRow['user_id']; ?>" <?php echo (int) $userRow['user_id'] === $selectedUserId ? 'selected' : ''; ?>>
-                                <?php echo ud_h($userRow['display_name']); ?>
-                                <?php if (!empty($userRow['station_name'])): ?>
-                                    - <?php echo ud_h($userRow['station_name']); ?>
-                                <?php endif; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </form>
                 <div class="action-buttons">
                     <a href="../organisation_pdf.php?user_id=<?php echo (int) $selectedUserId; ?>" class="btn btn-outline-primary btn-soft">
                         <i class="bi bi-printer me-1"></i> Profile PDF
