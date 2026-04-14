@@ -1140,6 +1140,14 @@ body::before {
         padding: 0;
         border: none;
         box-shadow: none;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .normal-score-sheet *,
+    .normal-score-sheet .reveal {
+        opacity: 1 !important;
+        transform: none !important;
     }
 
     .normal-score-sheet__meta {
@@ -1157,6 +1165,15 @@ body::before {
         border-color: #000 !important;
     }
 
+    .normal-score-table,
+    .normal-score-table thead,
+    .normal-score-table tbody,
+    .normal-score-table tr,
+    .normal-score-table th,
+    .normal-score-table td {
+        visibility: visible !important;
+    }
+
     .normal-score-table th:nth-child(2),
     .normal-score-table td:nth-child(2) {
         width: 30%;
@@ -1166,6 +1183,11 @@ body::before {
     .normal-score-sign,
     .normal-score-sheet__footer-note {
         font-size: 0.68rem;
+    }
+
+    .normal-score-sheet__footer-note {
+        margin-top: 0.5rem;
+        padding-top: 0.45rem;
     }
 }
 
