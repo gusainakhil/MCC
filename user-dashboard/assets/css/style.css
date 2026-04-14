@@ -1112,6 +1112,115 @@ body::before {
     text-align: center;
 }
 
+.attendance-sheet {
+    border: 1px solid rgba(16, 42, 60, 0.2);
+    border-radius: 14px;
+    padding: 1rem;
+    background: #fff;
+}
+
+.attendance-sheet__head {
+    position: relative;
+    margin-bottom: 0.7rem;
+    text-align: center;
+}
+
+.attendance-sheet__head span {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-weight: 700;
+}
+
+.attendance-sheet__head h3 {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.attendance-sheet__meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1.2rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.92rem;
+}
+
+.attendance-table {
+    table-layout: fixed;
+    font-size: 0.84rem;
+}
+
+.attendance-table th,
+.attendance-table td {
+    border-color: rgba(16, 42, 60, 0.45);
+    vertical-align: top;
+    padding: 0.42rem;
+}
+
+.attendance-table th:nth-child(2) {
+    width: 18%;
+}
+
+.attendance-table th:nth-child(3) {
+    width: 10%;
+}
+
+.attendance-table th:nth-child(7) {
+    width: 8%;
+}
+
+.attendance-table th:nth-child(8) {
+    width: 20%;
+}
+
+.attendance-photo {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    box-shadow: 0 8px 18px rgba(60, 141, 188, 0.24);
+}
+
+.attendance-location {
+    line-height: 1.25;
+}
+
+.attendance-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.attendance-summary > div {
+    border: 1px solid rgba(60, 141, 188, 0.12);
+    background: rgba(60, 141, 188, 0.04);
+    border-radius: 14px;
+    padding: 0.7rem 0.85rem;
+}
+
+.attendance-summary span {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+    font-weight: 700;
+}
+
+.attendance-summary strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
 @media print {
     @page {
         size: landscape;
@@ -1207,6 +1316,32 @@ body::before {
     .normal-score-sheet__footer-note {
         margin-top: 0.5rem;
         padding-top: 0.45rem;
+    }
+
+    .attendance-sheet {
+        padding: 0.75rem;
+    }
+
+    .attendance-sheet__head h3 {
+        font-size: 1.05rem;
+        padding-top: 1.3rem;
+    }
+
+    .attendance-sheet__head span {
+        font-size: 0.8rem;
+    }
+
+    .attendance-sheet__meta {
+        grid-template-columns: 1fr;
+        font-size: 0.86rem;
+    }
+
+    .attendance-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .attendance-table {
+        font-size: 0.72rem;
     }
 }
 

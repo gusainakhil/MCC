@@ -60,13 +60,13 @@ $layoutContext = [
 ];
 
 $machineRows = [
-    ['type' => 'Portable high-pressure jet hose pipe', 'count' => '2 per pit', 'location' => 'Coach exterior washing. If high pressure jet cleaning plants are available on washing lines, contractor will operate and maintain the plant during currency of contract including spares, consumables, nozzles and pipe line etc. Otherwise contractor should provide own jet machines for exterior cleaning of coaches.', 'target' => 'Available', 'achieve' => 'Yes'],
-    ['type' => 'Portable powered single disc floor scrubber', 'count' => '2 per pit', 'location' => 'PVC floor & Aluminum chequered plate etc.', 'target' => 'Available', 'achieve' => 'Yes'],
-    ['type' => 'High pressure jet machine', 'count' => '2 per pit', 'location' => 'For exterior washing.', 'target' => 'Available', 'achieve' => 'Yes'],
-    ['type' => 'Hand held single disc electrically operated mini scrubber', 'count' => '2 per pit', 'location' => 'For scrubbing toilet floor, skirting and panels etc.', 'target' => 'Available', 'achieve' => 'Yes'],
-    ['type' => 'Portable high-pressure jet machine of smaller size', 'count' => '2 per pit', 'location' => 'For squatting pan, wall protector, commode pan etc.', 'target' => 'Available', 'achieve' => 'Yes'],
-    ['type' => 'Portable wet & dry vacuum cleaner', 'count' => '2 per pit', 'location' => 'For intensive cleaning of coaches.', 'target' => 'Available', 'achieve' => 'Yes'],
-    ['type' => 'Buffing machine', 'count' => '2 per pit', 'location' => 'For intensive cleaning of coaches.', 'target' => 'Available', 'achieve' => 'Yes'],
+    ['type' => 'Portable high-pressure jet hose pipe', 'count' => '2 per pit', 'location' => 'Coach exterior washing. If high pressure jet cleaning plants are available on washing lines, contractor will operate and maintain the plant during currency of contract including spares, consumables, nozzles and pipe line etc. Otherwise contractor should provide own jet machines for exterior cleaning of coaches.', 'target' => 2, 'achieve' => 2],
+    ['type' => 'Portable powered single disc floor scrubber', 'count' => '2 per pit', 'location' => 'PVC floor & Aluminum chequered plate etc.', 'target' => 2, 'achieve' => 2],
+    ['type' => 'High pressure jet machine', 'count' => '2 per pit', 'location' => 'For exterior washing.', 'target' => 2, 'achieve' => 1],
+    ['type' => 'Hand held single disc electrically operated mini scrubber', 'count' => '2 per pit', 'location' => 'For scrubbing toilet floor, skirting and panels etc.', 'target' => 2, 'achieve' => 2],
+    ['type' => 'Portable high-pressure jet machine of smaller size', 'count' => '2 per pit', 'location' => 'For squatting pan, wall protector, commode pan etc.', 'target' => 2, 'achieve' => 1],
+    ['type' => 'Portable wet & dry vacuum cleaner', 'count' => '2 per pit', 'location' => 'For intensive cleaning of coaches.', 'target' => 2, 'achieve' => 2],
+    ['type' => 'Buffing machine', 'count' => '2 per pit', 'location' => 'For intensive cleaning of coaches.', 'target' => 2, 'achieve' => 1],
 ];
 ?>
 <!DOCTYPE html>
@@ -112,7 +112,11 @@ $machineRows = [
                                 <label class="form-label">Train No</label>
                                 <input type="text" class="form-control" value="12345">
                             </div>
-                            <div class="col-12 col-md-6 col-xl-3 d-flex gap-2 justify-content-end">
+                            <div class="col-12 col-md-6 col-xl-3">
+                                <label class="form-label">Add Target</label>
+                                <input type="number" class="form-control" value="2" min="0">
+                            </div>
+                            <div class="col-12 d-flex gap-2 justify-content-end">
                                 <button type="button" class="btn btn-soft">Reset</button>
                                 <button type="button" class="btn btn-brand">Apply Filter</button>
                                 <button type="button" class="btn btn-outline-primary btn-soft" onclick="udPrintMachineReportCard();">
@@ -155,8 +159,8 @@ $machineRows = [
                                             <tr>
                                                 <td><?php echo (int) ($index + 1); ?></td>
                                                 <td><?php echo ud_h($row['type']); ?></td>
-                                                <td><?php echo ud_h($row['target']); ?></td>
-                                                <td><?php echo ud_h($row['achieve']); ?></td>
+                                                <td><?php echo (int) $row['target']; ?></td>
+                                                <td><?php echo (int) $row['achieve']; ?></td>
                                                 <td><?php echo ud_h($row['count']); ?></td>
                                                 <td><?php echo ud_h($row['location']); ?></td>
                                             </tr>
