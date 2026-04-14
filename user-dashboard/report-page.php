@@ -14,7 +14,8 @@ $pageDescription = $reportPageConfig['page_description'] ?? 'Dedicated report pa
 $pageIcon = $reportPageConfig['page_icon'] ?? 'bi-journal-text';
 $pageAccent = $reportPageConfig['page_accent'] ?? ud_report_accent($reportType);
 
-$selectedUserId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : ud_authenticated_user_id();
+$selectedUserId = ud_authenticated_user_id();
+$selectedUserId = ud_authenticated_user_id();
 $context = ud_load_dashboard_context($conn, $selectedUserId, $reportType);
 extract($context, EXTR_OVERWRITE);
 
@@ -215,7 +216,7 @@ $isSupportedTransactionalType = in_array($reportType, ['Normal Report', 'Intensi
 
                                                 <div class="report-card__footer">
                                                     <span class="text-muted small">Dynamic page for this report type</span>
-                                                    <a href="<?php echo ud_h(ud_report_page_url((string) $reportRow['report_type'])); ?>?user_id=<?php echo (int) $selectedUserId; ?>" class="btn btn-sm btn-outline-primary btn-soft">Open page</a>
+                                                    <a href="<?php echo ud_h(ud_report_page_url((string) $reportRow['report_type'])); ?>" class="btn btn-sm btn-outline-primary btn-soft">Open page</a>
                                                 </div>
                                             </article>
                                         <?php endforeach; ?>
@@ -253,7 +254,7 @@ $isSupportedTransactionalType = in_array($reportType, ['Normal Report', 'Intensi
                             </div>
                             <div class="panel-card__body d-grid gap-2">
                                 <?php foreach ($allReportPages as $label => $url): ?>
-                                    <a class="btn <?php echo $label === $reportType ? 'btn-brand' : 'btn-soft'; ?> text-start" href="<?php echo ud_h($url); ?>?user_id=<?php echo (int) $selectedUserId; ?>">
+                                    <a class="btn <?php echo $label === $reportType ? 'btn-brand' : 'btn-soft'; ?> text-start" href="<?php echo ud_h($url); ?>">
                                         <i class="bi bi-arrow-right-circle me-2"></i><?php echo ud_h($label); ?>
                                     </a>
                                 <?php endforeach; ?>

@@ -45,7 +45,6 @@ if (!function_exists('ud_render_dashboard_header')) {
     function ud_render_dashboard_header(array $context)
     {
         $selectedUserId = (int) ($context['selectedUserId'] ?? 0);
-        $users = $context['users'] ?? [];
         $title = (string) ($context['pageTitle'] ?? 'Dashboard');
         $subtitle = (string) ($context['pageDescription'] ?? '');
         $icon = (string) ($context['pageIcon'] ?? 'bi-grid-1x2');
@@ -66,19 +65,6 @@ if (!function_exists('ud_render_dashboard_header')) {
                 </div>
             </div>
             <div class="topbar-actions header-actions">
-                <form method="get" class="user-switcher">
-                    <label for="user_id" class="form-label mb-1">Switch user</label>
-                    <select name="user_id" id="user_id" class="form-select" onchange="this.form.submit()">
-                        <?php foreach ($users as $userRow): ?>
-                            <option value="<?php echo (int) $userRow['user_id']; ?>" <?php echo (int) $userRow['user_id'] === $selectedUserId ? 'selected' : ''; ?>>
-                                <?php echo ud_h($userRow['display_name']); ?>
-                                <?php if (!empty($userRow['station_name'])): ?>
-                                    - <?php echo ud_h($userRow['station_name']); ?>
-                                <?php endif; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </form>
                 <div class="action-buttons">
                     <a href="../organisation_pdf.php?user_id=<?php echo (int) $selectedUserId; ?>" class="btn btn-outline-primary btn-soft">
                         <i class="bi bi-printer me-1"></i> Profile PDF
@@ -125,7 +111,7 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
             </div>
 
             <nav class="sidebar-nav">
-                <a class="sidebar-link <?php echo $activePage === 'dashboard' ? 'active' : ''; ?>" href="index.php?user_id=<?php echo (int) $selectedUserId; ?>">
+                <a class="sidebar-link <?php echo $activePage === 'dashboard' ? 'active' : ''; ?>" href="index.php">
                     <i class="bi bi-grid-1x2"></i>
                     <span>Dashboard</span>
                 </a>
@@ -134,7 +120,7 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
                     <span>Logout</span>
                 </a>
                 <?php foreach ($reportPageMap as $label => $url): ?>
-                    <a class="sidebar-link <?php echo $reportType === $label ? 'active' : ''; ?>" href="<?php echo ud_h($url); ?>?user_id=<?php echo (int) $selectedUserId; ?>">
+                    <a class="sidebar-link <?php echo $reportType === $label ? 'active' : ''; ?>" href="<?php echo ud_h($url); ?>">
                         <i class="bi bi-journal-text"></i>
                         <span><?php echo ud_h($label); ?></span>
                     </a>
@@ -148,7 +134,7 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
                 <?php else: ?>
                     <div class="sidebar-report-list">
                         <?php foreach ($reportItems as $item): ?>
-                            <a class="sidebar-report-item" href="<?php echo ud_h($item['url']); ?>?user_id=<?php echo (int) $selectedUserId; ?>">
+                            <a class="sidebar-report-item" href="<?php echo ud_h($item['url']); ?>">
                                 <div class="sidebar-report-item__title">
                                     <span><?php echo ud_h($item['name']); ?></span>
                                     <small><?php echo ud_h($item['type']); ?></small>

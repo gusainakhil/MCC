@@ -16,6 +16,7 @@ function h($value)
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 
+
 function badgeClass($status)
 {
     return strtolower((string) $status) === 'active' ? 'text-bg-success' : 'text-bg-secondary';
@@ -65,7 +66,7 @@ if ($userListResult) {
     }
 }
 
-$selectedUserId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : ud_authenticated_user_id();
+$selectedUserId = ud_authenticated_user_id();
 if ($selectedUserId <= 0 && count($users) > 0) {
     $selectedUserId = (int) $users[0]['user_id'];
 }
@@ -517,7 +518,7 @@ function reportStatusBadge($status)
 
                                                 <div class="report-card__footer">
                                                     <span class="text-muted small">Assigned for <?php echo h($stationLabel); ?></span>
-                                                    <a href="<?php echo h($reportPageUrls[$reportType] ?? 'index.php'); ?>?user_id=<?php echo (int) $selectedUserId; ?>" class="btn btn-sm btn-outline-primary btn-soft">Open page</a>
+                                                    <a href="<?php echo h($reportPageUrls[$reportType] ?? 'index.php'); ?>" class="btn btn-sm btn-outline-primary btn-soft">Open page</a>
                                                 </div>
                                             </article>
                                         <?php endforeach; ?>
