@@ -323,34 +323,41 @@ body::before {
 
 .sidebar-report-list {
     display: grid;
-    gap: 0.55rem;
+    gap: 0;
 }
 
 .sidebar-report-item {
     display: flex;
     align-items: flex-start;
     gap: 0.35rem;
-    padding: 0.1rem 0;
+    padding: 0.72rem 0;
     text-decoration: none;
-    color: var(--ink);
+    color: #5b6f7c;
     background: transparent;
     border: none;
     box-shadow: none;
     backdrop-filter: none;
     overflow: visible;
-    transition: color 0.2s ease, opacity 0.2s ease;
+    border-bottom: 1px solid rgba(60, 141, 188, 0.12);
+    transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-report-item:last-child {
+    border-bottom: none;
 }
 
 .sidebar-report-item:hover {
-    color: var(--brand-dark);
-    opacity: 0.92;
+    color: var(--brand);
+    transform: translateX(2px);
+    opacity: 0.96;
 }
 
 .sidebar-report-item__title span {
     display: block;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
     margin-bottom: 0;
+    letter-spacing: 0.01em;
 }
 
 .sidebar-report-item__title {
