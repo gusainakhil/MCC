@@ -67,8 +67,8 @@ if (!function_exists('ud_render_dashboard_header')) {
             </div>
             <div class="topbar-actions header-actions">
                 <div class="action-buttons">
-                    <button type="button" class="btn btn-outline-primary btn-soft sidebar-toggle-btn" data-sidebar-toggle aria-label="Toggle sidebar" aria-expanded="true" aria-controls="dashboardSidebar">
-                        <i class="bi bi-grid-3x3-gap-fill me-1"></i> Menu
+                    <button type="button" class="btn btn-outline-primary btn-soft sidebar-toggle-btn" data-sidebar-toggle aria-label="Toggle sidebar" title="Toggle sidebar" aria-expanded="true" aria-controls="dashboardSidebar">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
                     </button>
                  
                     <a href="../logout.php" class="btn btn-outline-danger btn-soft">

@@ -168,14 +168,16 @@ body::before {
     display: none;
 }
 
-body.sidebar-collapsed .dashboard-sidebar {
-    width: 0;
-    flex-basis: 0;
-    padding: 0;
-    border-width: 0;
-    opacity: 0;
-    overflow: hidden;
-    pointer-events: none;
+@media (min-width: 1200px) {
+    body.sidebar-collapsed .dashboard-sidebar {
+        width: 0;
+        flex-basis: 0;
+        padding: 0;
+        border-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
 }
 
 .dashboard-main {
@@ -575,7 +577,16 @@ body.sidebar-collapsed .dashboard-sidebar {
 }
 
 .sidebar-toggle-btn {
-    min-width: 7.4rem;
+    width: 2.9rem;
+    height: 2.9rem;
+    display: inline-grid;
+    place-items: center;
+    padding: 0;
+    border-radius: 12px;
+}
+
+.sidebar-toggle-btn i {
+    font-size: 1.05rem;
 }
 
 .btn-brand,

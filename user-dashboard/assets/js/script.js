@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', function () {
         window.addEventListener('resize', function () {
             if (!isMobileViewport()) {
                 body.classList.remove('sidebar-open');
+            } else {
+                body.classList.remove('sidebar-collapsed');
             }
             syncToggleState();
         });
@@ -60,6 +62,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeSidebar();
             }
         });
+
+        if (isMobileViewport()) {
+            body.classList.remove('sidebar-collapsed');
+        }
 
         syncToggleState();
     }
