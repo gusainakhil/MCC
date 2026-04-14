@@ -99,24 +99,15 @@ $layoutContext = [
 								<input type="date" class="form-control" value="2026-04-14">
 							</div>
 							<div class="col-12 col-md-6 col-xl-3">
-								<label class="form-label">Depot</label>
-								<select class="form-select">
-									<option selected>Dehradun</option>
-									<option>Ahmedabad</option>
-									<option>Vadodara</option>
-								</select>
+								<label class="form-label">Train No</label>
+								<input type="text" class="form-control" value="12345">
 							</div>
-							<div class="col-12 col-md-6 col-xl-3">
-								<label class="form-label">Shift</label>
-								<select class="form-select">
-									<option selected>Morning</option>
-									<option>Evening</option>
-									<option>Night</option>
-								</select>
-							</div>
-							<div class="col-12 d-flex gap-2 justify-content-end">
+							<div class="col-12 col-md-6 col-xl-3 d-flex gap-2 justify-content-end">
 								<button type="button" class="btn btn-soft">Reset</button>
 								<button type="button" class="btn btn-brand">Apply Filter</button>
+								<button type="button" class="btn btn-outline-primary btn-soft" onclick="window.print();">
+									<i class="bi bi-printer me-1"></i> Print
+								</button>
 							</div>
 						</div>
 					</div>
@@ -224,6 +215,7 @@ $layoutContext = [
 								<span>Signature of Contractor's Supervisor</span>
 								<span>Signature of Auth. Rep. of Sr.DME/CDO</span>
 							</div>
+                            <br><br>
                             		<div class="normal-score-sheet__meta">
 									<div>Date: .......................</div>
 									<div>Train No: ............................</div>
