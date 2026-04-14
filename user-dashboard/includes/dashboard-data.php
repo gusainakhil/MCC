@@ -59,6 +59,18 @@ if (!function_exists('ud_report_page_url')) {
     }
 }
 
+if (!function_exists('ud_bind_params')) {
+    function ud_bind_params($stmt, $types, array $params)
+    {
+        $bindArgs = [$types];
+        foreach ($params as $index => $value) {
+            $bindArgs[] = &$params[$index];
+        }
+
+        return call_user_func_array([$stmt, 'bind_param'], $bindArgs);
+    }
+}
+
 if (!function_exists('ud_list_users')) {
     function ud_list_users($conn)
     {
@@ -226,7 +238,7 @@ if (!function_exists('ud_load_reports')) {
 
         $stmt = $conn->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param(implode('', $types), ...$params);
+            ud_bind_params($stmt, implode('', $types), $params);
             $stmt->execute();
             $result = $stmt->get_result();
             if ($result) {
@@ -274,7 +286,7 @@ if (!function_exists('ud_load_parameters')) {
 
         $stmt = $conn->prepare($sql);
         if ($stmt) {
-            $stmt->bind_param(implode('', $types), ...$params);
+            ud_bind_params($stmt, implode('', $types), $params);
             $stmt->execute();
             $result = $stmt->get_result();
             if ($result) {
