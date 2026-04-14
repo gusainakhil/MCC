@@ -44,9 +44,6 @@ $selectedUser = null;
 $userProfile = null;
 $contract = null;
 $reports = [];
-$parameters = [];
-$recentActivity = [];
-$trainCount = 0;
 
 $userListSql = '
     SELECT
@@ -144,18 +141,6 @@ if ($selectedUserId > 0) {
         $contractStmt->close();
     }
 
-    $trainCountSql = 'SELECT COUNT(*) AS total_count FROM Mcc_train_information WHERE user_id = ?';
-    $trainCountStmt = $conn->prepare($trainCountSql);
-    if ($trainCountStmt) {
-        $trainCountStmt->bind_param('i', $selectedUserId);
-        $trainCountStmt->execute();
-        $trainCountResult = $trainCountStmt->get_result();
-        if ($trainCountResult && ($trainRow = $trainCountResult->fetch_assoc())) {
-            $trainCount = (int) $trainRow['total_count'];
-        }
-        $trainCountStmt->close();
-    }
-
     $reportSql = '
         SELECT
             r.report_id,
@@ -191,97 +176,13 @@ if ($selectedUserId > 0) {
         }
         $reportStmt->close();
     }
-
-    $parameterSql = '
-        SELECT
-            p.parameter_id,
-            p.parameter_name,
-            p.category,
-            p.status,
-            p.assigned_at,
-            r.report_name,
-            r.report_type
-        FROM Mcc_parameters p
-        INNER JOIN Mcc_reports r ON r.report_id = p.report_id
-        WHERE p.user_id = ?
-        ORDER BY r.report_type ASC, r.report_name ASC, p.parameter_name ASC
-    ';
-    $parameterStmt = $conn->prepare($parameterSql);
-    if ($parameterStmt) {
-        $parameterStmt->bind_param('i', $selectedUserId);
-        $parameterStmt->execute();
-        $parameterResult = $parameterStmt->get_result();
-        if ($parameterResult) {
-            while ($row = $parameterResult->fetch_assoc()) {
-                $parameters[] = $row;
-            }
-        }
-        $parameterStmt->close();
-    }
-
-    $activitySql = '
-        SELECT source_type, created_at, report_name, report_type, parameter_name, train_no, value
-        FROM (
-            SELECT
-                \'Normal Report\' AS source_type,
-                n.created_at AS created_at,
-                r.report_name AS report_name,
-                r.report_type AS report_type,
-                p.parameter_name AS parameter_name,
-                n.train_no AS train_no,
-                n.`value` AS value
-            FROM Mcc_normal_report_data n
-            INNER JOIN Mcc_parameters p ON p.parameter_id = n.parameter_id
-            INNER JOIN Mcc_reports r ON r.report_id = p.report_id
-            WHERE n.user_id = ?
-
-            UNION ALL
-
-            SELECT
-                \'Intensive Report\' AS source_type,
-                i.created_at AS created_at,
-                r.report_name AS report_name,
-                r.report_type AS report_type,
-                p.parameter_name AS parameter_name,
-                i.train_no AS train_no,
-                i.`value` AS value
-            FROM Mcc_intensive_report_data i
-            INNER JOIN Mcc_parameters p ON p.parameter_id = i.parameter_id
-            INNER JOIN Mcc_reports r ON r.report_id = p.report_id
-            WHERE i.user_id = ?
-        ) AS combined_activity
-        ORDER BY created_at DESC
-        LIMIT 6
-    ';
-    $activityStmt = $conn->prepare($activitySql);
-    if ($activityStmt) {
-        $activityStmt->bind_param('ii', $selectedUserId, $selectedUserId);
-        $activityStmt->execute();
-        $activityResult = $activityStmt->get_result();
-        if ($activityResult) {
-            while ($row = $activityResult->fetch_assoc()) {
-                $recentActivity[] = $row;
-            }
-        }
-        $activityStmt->close();
-    }
 }
 
 $reportTypes = [];
 $assignedReportsCount = count($reports);
-$assignedParametersCount = count($parameters);
-$recentSubmissionCount = count($recentActivity);
-$totalWeight = 0.0;
-$activeReportCount = 0;
-$activeParameterCount = 0;
 
 foreach ($reports as $reportRow) {
     $reportTypes[] = (string) $reportRow['report_type'];
-    $totalWeight += (float) ($reportRow['weight_percent'] ?? 0);
-    if (strtolower((string) $reportRow['status']) === 'active') {
-        $activeReportCount++;
-    }
-    $activeParameterCount += (int) ($reportRow['active_parameter_count'] ?? 0);
 }
 
 $reportTypes = array_values(array_unique($reportTypes));
@@ -329,7 +230,7 @@ $layoutContext = [
     'reports' => $reports,
     'reportType' => 'Dashboard',
     'pageTitle' => 'User Dashboard',
-    'pageDescription' => 'Assigned reports, parameters, and recent activity in one compact view.',
+    'pageDescription' => 'Assigned reports in one compact view.',
     'pageIcon' => 'bi-speedometer2',
     'pageAccent' => '#3c8dbc',
     'activePage' => 'dashboard',
@@ -380,73 +281,6 @@ function reportStatusBadge($status)
                             <p>
                                 <?php echo h($stationLabel); ?>
                             </p>
-                            <div class="hero-meta">
-                                <div>
-                                    <span>Role</span>
-                                    <strong><?php echo h($userProfile['role']); ?></strong>
-                                </div>
-                                <div>
-                                    <span>Status</span>
-                                    <strong><?php echo h($userProfile['status']); ?></strong>
-                                </div>
-                                <div>
-                                    <span>Trains</span>
-                                    <strong><?php echo (int) $trainCount; ?></strong>
-                                </div>
-                                <div>
-                                    <span>Reports</span>
-                                    <strong><?php echo (int) $assignedReportsCount; ?></strong>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="hero-card__panel">
-                            <div class="mini-stat">
-                                <span>Assigned parameters</span>
-                                <strong><?php echo (int) $assignedParametersCount; ?></strong>
-                            </div>
-                            <div class="mini-stat">
-                                <span>Active reports</span>
-                                <strong><?php echo (int) $activeReportCount; ?></strong>
-                            </div>
-                            <div class="mini-stat">
-                                <span>Recent entries</span>
-                                <strong><?php echo (int) $recentSubmissionCount; ?></strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-3 g-xl-4 mt-1">
-                    <div class="col-12 col-md-6 col-xl-3">
-                        <div class="metric-card reveal" style="--delay: 0.05s;">
-                            <div class="metric-icon"><i class="bi bi-journal-check"></i></div>
-                            <div class="metric-label">Assigned Reports</div>
-                            <div class="metric-value" data-count="<?php echo (int) $assignedReportsCount; ?>"><?php echo (int) $assignedReportsCount; ?></div>
-                            <div class="metric-note">Dynamic reports linked to this user.</div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-xl-3">
-                        <div class="metric-card reveal" style="--delay: 0.10s;">
-                            <div class="metric-icon"><i class="bi bi-diagram-3"></i></div>
-                            <div class="metric-label">Assigned Parameters</div>
-                            <div class="metric-value" data-count="<?php echo (int) $assignedParametersCount; ?>"><?php echo (int) $assignedParametersCount; ?></div>
-                            <div class="metric-note">Report parameters currently configured.</div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-xl-3">
-                        <div class="metric-card reveal" style="--delay: 0.15s;">
-                            <div class="metric-icon"><i class="bi bi-train-freight-front"></i></div>
-                            <div class="metric-label">Mapped Trains</div>
-                            <div class="metric-value" data-count="<?php echo (int) $trainCount; ?>"><?php echo (int) $trainCount; ?></div>
-                            <div class="metric-note">Train master records tied to the user.</div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-xl-3">
-                        <div class="metric-card reveal" style="--delay: 0.20s;">
-                            <div class="metric-icon"><i class="bi bi-activity"></i></div>
-                            <div class="metric-label">Recent Entries</div>
-                            <div class="metric-value" data-count="<?php echo (int) $recentSubmissionCount; ?>"><?php echo (int) $recentSubmissionCount; ?></div>
-                            <div class="metric-note">Latest normal and intensive report activity.</div>
                         </div>
                     </div>
                 </div>
@@ -573,101 +407,6 @@ function reportStatusBadge($status)
                     </div>
                 </div>
 
-                <div class="row g-3 g-xl-4 mt-1" id="assigned-parameters">
-                    <div class="col-xl-7">
-                        <div class="panel-card reveal">
-                            <div class="panel-card__header">
-                                <div>
-                                    <h3 class="panel-title mb-1">Assigned Parameters</h3>
-                                    <p class="panel-subtitle mb-0">Parameters are grouped by the assigned report type.</p>
-                                </div>
-                            </div>
-                            <div class="panel-card__body table-responsive">
-                                <table class="table align-middle table-hover dashboard-table mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Parameter</th>
-                                            <th>Report</th>
-                                            <th>Category</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php if (count($parameters) === 0): ?>
-                                            <tr>
-                                                <td colspan="4">
-                                                    <div class="empty-inline">No parameters assigned yet.</div>
-                                                </td>
-                                            </tr>
-                                        <?php else: ?>
-                                            <?php foreach ($parameters as $parameterRow): ?>
-                                                <tr>
-                                                    <td>
-                                                        <div class="fw-semibold"><?php echo h($parameterRow['parameter_name']); ?></div>
-                                                        <div class="text-muted small">Assigned <?php echo h(formatDateTimeValue($parameterRow['assigned_at'])); ?></div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="fw-semibold"><?php echo h($parameterRow['report_name']); ?></div>
-                                                        <div class="text-muted small"><?php echo h($parameterRow['report_type']); ?></div>
-                                                    </td>
-                                                    <td><?php echo h($parameterRow['category']); ?></td>
-                                                    <td><span class="badge <?php echo reportStatusBadge($parameterRow['status'] ?? 'Inactive'); ?> rounded-pill"><?php echo h($parameterRow['status'] ?? 'Inactive'); ?></span></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-5">
-                        <div class="panel-card reveal">
-                            <div class="panel-card__header">
-                                <div>
-                                    <h3 class="panel-title mb-1">Recent Activity</h3>
-                                    <p class="panel-subtitle mb-0">Latest normal and intensive report entries.</p>
-                                </div>
-                            </div>
-                            <div class="panel-card__body table-responsive">
-                                <table class="table align-middle dashboard-table mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Report</th>
-                                            <th>Train</th>
-                                            <th>Value</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php if (count($recentActivity) === 0): ?>
-                                            <tr>
-                                                <td colspan="4">
-                                                    <div class="empty-inline">No recent report entries found.</div>
-                                                </td>
-                                            </tr>
-                                        <?php else: ?>
-                                            <?php foreach ($recentActivity as $activityRow): ?>
-                                                <tr>
-                                                    <td>
-                                                        <div class="fw-semibold"><?php echo h(formatDateTimeValue($activityRow['created_at'])); ?></div>
-                                                        <div class="text-muted small"><?php echo h($activityRow['source_type']); ?></div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="fw-semibold"><?php echo h($activityRow['report_name']); ?></div>
-                                                        <div class="text-muted small"><?php echo h($activityRow['parameter_name']); ?></div>
-                                                    </td>
-                                                    <td><?php echo h($activityRow['train_no']); ?></td>
-                                                    <td><?php echo h($activityRow['value']); ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             <?php endif; ?>
         </div>
     </div>
