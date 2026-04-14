@@ -83,6 +83,9 @@ if (!function_exists('ud_render_dashboard_header')) {
                     <a href="../organisation_pdf.php?user_id=<?php echo (int) $selectedUserId; ?>" class="btn btn-outline-primary btn-soft">
                         <i class="bi bi-printer me-1"></i> Profile PDF
                     </a>
+                    <a href="logout.php" class="btn btn-outline-danger btn-soft">
+                        <i class="bi bi-box-arrow-right me-1"></i> Logout
+                    </a>
                     <a href="../index.php" class="btn btn-primary btn-brand">
                         <i class="bi bi-speedometer2 me-1"></i> Admin Home
                     </a>
@@ -125,6 +128,10 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
                 <a class="sidebar-link <?php echo $activePage === 'dashboard' ? 'active' : ''; ?>" href="index.php?user_id=<?php echo (int) $selectedUserId; ?>">
                     <i class="bi bi-grid-1x2"></i>
                     <span>Dashboard</span>
+                </a>
+                <a class="sidebar-link" href="logout.php">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
                 </a>
                 <?php foreach ($reportPageMap as $label => $url): ?>
                     <a class="sidebar-link <?php echo $reportType === $label ? 'active' : ''; ?>" href="<?php echo ud_h($url); ?>?user_id=<?php echo (int) $selectedUserId; ?>">

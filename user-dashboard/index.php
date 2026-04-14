@@ -4,8 +4,11 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 require_once __DIR__ . '/../connection.php';
+require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/dashboard-data.php';
 require_once __DIR__ . '/includes/dashboard-layout.php';
+
+ud_require_auth('login.php');
 
 function h($value)
 {
@@ -61,7 +64,7 @@ if ($userListResult) {
     }
 }
 
-$selectedUserId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0;
+$selectedUserId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : ud_authenticated_user_id();
 if ($selectedUserId <= 0 && count($users) > 0) {
     $selectedUserId = (int) $users[0]['user_id'];
 }

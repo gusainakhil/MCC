@@ -1,7 +1,10 @@
 <?php
 require_once __DIR__ . '/../connection.php';
+require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/dashboard-data.php';
 require_once __DIR__ . '/includes/dashboard-layout.php';
+
+ud_require_auth('login.php');
 
 $reportPageConfig = isset($reportPageConfig) && is_array($reportPageConfig) ? $reportPageConfig : [];
 $reportType = $reportPageConfig['report_type'] ?? 'Normal Report';
@@ -10,7 +13,7 @@ $pageDescription = $reportPageConfig['page_description'] ?? 'Dedicated report pa
 $pageIcon = $reportPageConfig['page_icon'] ?? 'bi-journal-text';
 $pageAccent = $reportPageConfig['page_accent'] ?? ud_report_accent($reportType);
 
-$selectedUserId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : 0;
+$selectedUserId = isset($_GET['user_id']) ? (int) $_GET['user_id'] : ud_authenticated_user_id();
 $context = ud_load_dashboard_context($conn, $selectedUserId, $reportType);
 extract($context, EXTR_OVERWRITE);
 
