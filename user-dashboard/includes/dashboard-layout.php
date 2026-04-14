@@ -144,9 +144,28 @@ if (!function_exists('ud_render_dashboard_sidebar')) {
             </div>
 
             <div class="sidebar-footer-card">
-                <div>
-                    <span>Mode</span>
-                    <strong><?php echo ud_h($reportType); ?></strong>
+                <div class="sidebar-footer-title">Quick Actions</div>
+                <div class="sidebar-footer-actions">
+                    <a class="sidebar-footer-action" href="add-employee.php">
+                        <i class="bi bi-person-plus"></i>
+                        <span>Add Employee</span>
+                    </a>
+                    <a class="sidebar-footer-action" href="add-train.php">
+                        <i class="bi bi-train-freight-front"></i>
+                        <span>Add Train</span>
+                    </a>
+                    <a class="sidebar-footer-action" href="change-password.php">
+                        <i class="bi bi-key"></i>
+                        <span>Change Password</span>
+                    </a>
+                    <a class="sidebar-footer-action" href="billing.php">
+                        <i class="bi bi-receipt"></i>
+                        <span>Billing</span>
+                    </a>
+                    <a class="sidebar-footer-action" href="add-penalty.php">
+                        <i class="bi bi-exclamation-diamond"></i>
+                        <span>Add Penalty</span>
+                    </a>
                 </div>
             </div>
         </aside>

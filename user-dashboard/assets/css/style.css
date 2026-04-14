@@ -456,6 +456,44 @@ body::before {
     gap: 0.65rem;
 }
 
+.sidebar-footer-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.sidebar-footer-actions {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.sidebar-footer-action {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    color: var(--ink);
+    background: rgba(60, 141, 188, 0.05);
+    border: 1px solid rgba(60, 141, 188, 0.12);
+    border-radius: 12px;
+    padding: 0.5rem 0.62rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.sidebar-footer-action i {
+    color: var(--brand-dark);
+}
+
+.sidebar-footer-action:hover {
+    color: var(--brand-dark);
+    background: rgba(60, 141, 188, 0.1);
+    border-color: rgba(60, 141, 188, 0.2);
+    transform: translateX(2px);
+}
+
 .sidebar-footer-card strong {
     display: block;
     font-family: 'Space Grotesk', sans-serif;
