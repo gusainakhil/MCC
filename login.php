@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="login-brand">
                 <div class="brand-mark">MCC</div>
                 <div>
-                    <div class="brand-name">BeatleBuddy Railway</div>
+                    <div class="brand-name">Beatle Analytics Railway</div>
                     <div class="brand-subtitle">Panel Login</div>
                 </div>
             </div>
