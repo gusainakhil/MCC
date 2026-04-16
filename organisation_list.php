@@ -99,12 +99,13 @@ $currentEditId = isset($_GET['edit_id']) ? (int) $_GET['edit_id'] : 0;
 									<th>Last Report On</th>
 									<th>Status</th>
 									<th>Actions</th>
+									<th>Marking</th>
 								</tr>
 							</thead>
 							<tbody>
 								<?php if (count($rows) === 0): ?>
 								<tr>
-										<td colspan="7" class="text-center text-muted py-3">No organisation/user records found.</td>
+										<td colspan="8" class="text-center text-muted py-3">No organisation/user records found.</td>
 								</tr>
 								<?php else: ?>
 								<?php foreach ($rows as $row): ?>
@@ -122,6 +123,11 @@ $currentEditId = isset($_GET['edit_id']) ? (int) $_GET['edit_id'] : 0;
 										</a>
 										<a class="btn btn-sm btn-warning" href="organisation.php?edit_id=<?php echo (int) $row['user_id']; ?>">
 											<i class="bi bi-pencil"></i> Edit
+										</a>
+									</td>
+									<td>
+										<a class="btn btn-sm btn-danger" href="Reports.php?user_id=<?php echo (int) $row['user_id']; ?>">
+											<i class="bi bi-x-circle"></i> Update Report Marks
 										</a>
 									</td>
 								</tr>
